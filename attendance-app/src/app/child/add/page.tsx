@@ -3,6 +3,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import Loading from "@/components/Loading";
 
 interface FormState {
   name: string;
@@ -38,6 +39,7 @@ export default function AddChildPage() {
   });
   const [submitError, setSubmitError] = useState<string>("");
   const [userId, setUserId] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -52,6 +54,7 @@ export default function AddChildPage() {
     };
 
     fetchUser();
+    setIsLoading(false);
   }, [router]);
 
   const handleInputChange = (
@@ -87,7 +90,7 @@ export default function AddChildPage() {
     }
 
     setSubmitError("");
-
+    setIsLoading(true);
     const formData = new FormData();
     formData.append("name", form.name);
     formData.append("birthDay", form.birthDay);
@@ -107,13 +110,16 @@ export default function AddChildPage() {
     if (res.ok) {
       alert("登録が完了しました");
       router.push("/dashboard");
+      setIsLoading(false);
     } else {
       setSubmitError(data.message || "登録に失敗しました");
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="p-6">
+      {isLoading && <Loading />}
       <h1 className="text-xl mb-4">学生登録</h1>
       {submitError && (
         <p className="text-red-500 mb-4" aria-live="polite">
