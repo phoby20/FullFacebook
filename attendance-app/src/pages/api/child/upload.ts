@@ -21,7 +21,7 @@ export default async function handler(
   try {
     const form = new IncomingForm({
       keepExtensions: true,
-      maxFileSize: 1024 * 1024, // 1MB 제한
+      // maxFileSize: 1024 * 1024, // 1MB 제한
     });
 
     const files: Files = await new Promise((resolve, reject) => {
@@ -43,6 +43,8 @@ export default async function handler(
 
     // sharp로 이미지 리사이징
     const resizedBuffer = await sharp(file.filepath)
+      .rotate() // EXIF Orientation에 따라 자동 회전
+      .withMetadata({ orientation: undefined }) // EXIF Orientation 정보 제거
       .resize({
         width: 600,
         height: 600,

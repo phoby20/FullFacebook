@@ -86,7 +86,10 @@ export default async function handler(
     const file = Array.isArray(files.photo) ? files.photo[0] : files.photo;
     if (file && file.filepath) {
       try {
-        const buffer = await sharp(file.filepath).toBuffer(); // sharp로 직접 버퍼 생성
+        const buffer = await sharp(file.filepath)
+          .rotate() // EXIF Orientation에 따라 자동 회전
+          .withMetadata({ orientation: undefined }) // EXIF Orientation 정보 제거
+          .toBuffer(); // sharp로 직접 버퍼 생성
         const filename = `${Date.now()}-${
           file.originalFilename || "image.jpg"
         }`;

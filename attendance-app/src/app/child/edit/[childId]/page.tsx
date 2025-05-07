@@ -110,10 +110,10 @@ export default function EditChildPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      if (selectedFile.size > 1024 * 1024) {
-        setMessage("파일 크기는 1MB 이하여야 합니다.");
-        return;
-      }
+      // if (selectedFile.size > 1024 * 1024) {
+      //   setMessage("파일 크기는 1MB 이하여야 합니다.");
+      //   return;
+      // }
       if (!["image/jpeg", "image/png"].includes(selectedFile.type)) {
         setMessage("JPEGまたはPNG形式のみの画像を選択してください。");
         return;
