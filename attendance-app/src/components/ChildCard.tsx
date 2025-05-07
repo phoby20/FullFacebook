@@ -83,14 +83,17 @@ export const ChildCard = ({
         )}
         {/* 드롭다운 메뉴를 포함한 컨테이너 */}
         <div className="relative" ref={dropdownRef}>
-          <button
-            className="text-blue-500 hover:text-blue-700"
-            onClick={toggleDropdown}
-            aria-haspopup="true"
-            aria-expanded={isDropdownOpen}
-          >
-            more
-          </button>
+          {onCheck ? (
+            <button
+              className="text-blue-500 hover:text-blue-700"
+              onClick={toggleDropdown}
+              aria-haspopup="true"
+              aria-expanded={isDropdownOpen}
+            >
+              more
+            </button>
+          ) : null}
+
           {isDropdownOpen && onEdit && (
             <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow-lg z-10">
               <button
