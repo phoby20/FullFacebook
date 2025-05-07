@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum Role {
+  master
+  superAdmin
+  admin
+  child
+}
+
+enum Gender {
+  male
+  female
+}
+
+model User {
+  id               String             @id @default(cuid())
+  name             String
+  email            String             @unique
+  password         String
+  birthDay         DateTime
+  photoPath        String?
+  gender           Gender
+  phone            String?
+  lineId           String?
+  cacaoTalkId      String?
+  role             Role
+  children         Child[]            @relation("ManagedChildren")
+  assignedChildren Child[]            @relation("AdminChildren")
+  attendance       Attendance[]       @relation("Checker")
+  organizations    UserOrganization[] // 다대다 관계: 단체 소속
+  groups           UserGroup[]        // 다대다 관계: 그룹 소속
+  createdAt        DateTime           @default(now())
+}
+
+model Child {
+  id              String       @id @default(cuid())
+  name            String
+  birthDay        DateTime
+  photoPath       String
+  gender          Gender
+  phone           String?
+  lineId          String?
+  cacaoTalkId     String?
+  managerId       String
+  manager         User         @relation("ManagedChildren", fields: [managerId], references: [id])
+  assignedAdminId String?
+  assignedAdmin   User?        @relation("AdminChildren", fields: [assignedAdminId], references: [id])
+  attendance      Attendance[]
+  createdAt       DateTime     @default(now())
+}
+
+model Attendance {
+  id          String   @id @default(cuid())
+  childId     String
+  child       Child    @relation(fields: [childId], references: [id])
+  checkedById String
+  checkedBy   User     @relation("Checker", fields: [checkedById], references: [id])
+  date        DateTime
+}
+
+model Organization {
+  id          String             @id @default(cuid())
+  name        String
+  createdAt   DateTime           @default(now())
+  users       UserOrganization[] // 다대다 관계: 사용자
+  groups      Group[]            // 일대다 관계: 단체 내 그룹
+}
+
+model Group {
+  id             String             @id @default(cuid())
+  name           String
+  organizationId String
+  organization   Organization       @relation(fields: [organizationId], references: [id])
+  users          UserGroup[]        // 다대다 관계: 사용자
+  createdAt      DateTime           @default(now())
+}
+
+// User와 Organization 간 다대다 관계를 위한 연결 테이블
+model UserOrganization {
+  userId         String
+  organizationId String
+  user           User         @relation(fields: [userId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  assignedAt     DateTime     @default(now())
+  @@id([userId, organizationId])
+}
+
+// User와 Group 간 다대다 관계를 위한 연결 테이블
+model UserGroup {
+  userId     String
+  groupId    String
+  user       User       @relation(fields: [userId], references: [id])
+  group      Group      @relation(fields: [groupId], references: [id])
+  assignedAt DateTime   @default(now())
+  @@id([userId, groupId])
+}
