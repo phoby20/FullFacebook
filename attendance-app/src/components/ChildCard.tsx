@@ -72,14 +72,14 @@ export const ChildCard = ({
   return (
     <div
       className={`rounded p-4 border border-gray-200 ${
-        checked ? "border-green-500 border-2" : ""
+        checked ? "border-green-500 border-1" : ""
       }`}
     >
       <div className="flex justify-between items-center mb-2">
         {checked ? (
-          <p className="text-green-500 font-extrabold">◉</p>
+          <p className="text-green-500 font-extrabold">●</p>
         ) : (
-          <p className="text-gray-500">◯</p>
+          <p className="text-gray-300">●</p>
         )}
         {/* 드롭다운 메뉴를 포함한 컨테이너 */}
         <div className="relative" ref={dropdownRef}>
