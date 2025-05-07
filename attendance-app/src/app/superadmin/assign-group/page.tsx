@@ -119,6 +119,7 @@ export default function AssignGroupPage() {
       }
       alert("グループ指定完了");
       setIsLoading(false);
+      window.location.href = "/superadmin/assign-group";
     } catch (err: unknown) {
       setError(
         err instanceof Error ? err.message : "그룹 지정에 실패했습니다."
