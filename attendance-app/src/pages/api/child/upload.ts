@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { IncomingForm, Fields, Files } from "formidable";
-import { join } from "path";
 import sharp from "sharp";
+import { put } from "@vercel/blob";
 
 // formidable 기본 설정
 export const config = {
@@ -20,9 +20,8 @@ export default async function handler(
 
   try {
     const form = new IncomingForm({
-      uploadDir: join(process.cwd(), "public/uploads"),
       keepExtensions: true,
-      maxFileSize: 5 * 1024 * 1024, // 5MB 제한
+      maxFileSize: 4 * 1024 * 1024, // 4MB 제한
     });
 
     const files: Files = await new Promise((resolve, reject) => {
@@ -42,11 +41,8 @@ export default async function handler(
       return res.status(400).json({ message: "Unsupported file type" });
     }
 
-    const filename = `${Date.now()}-${file.originalFilename || "unknown"}`;
-    const filePath = join(process.cwd(), "public/uploads", filename);
-
-    // sharp를 사용하여 이미지를 600x600으로 리사이징
-    await sharp(file.filepath)
+    // sharp로 이미지 리사이징
+    const resizedBuffer = await sharp(file.filepath)
       .resize({
         width: 600,
         height: 600,
@@ -54,9 +50,16 @@ export default async function handler(
         position: "center", // 중앙을 기준으로 자름
       })
       .toFormat("jpg", { quality: 80 })
-      .toFile(filePath);
+      .toBuffer();
 
-    return res.status(200).json({ photoPath: `/uploads/${filename}` });
+    // Vercel Blob에 업로드
+    const filename = `${Date.now()}-${file.originalFilename || "unknown"}`;
+    const blob = await put(`uploads/${filename}`, resizedBuffer, {
+      access: "public",
+      contentType: "image/jpeg",
+    });
+
+    return res.status(200).json({ photoPath: blob.url });
   } catch (error) {
     console.error("Error processing file:", error);
     return res.status(500).json({ message: "Failed to process file" });

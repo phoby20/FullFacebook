@@ -1,8 +1,8 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import formidable from "formidable";
-import fs from "fs";
 import { prisma } from "../../../../lib/prisma";
 import { resizeAndSave } from "../../../../lib/resizeImage";
+import sharp from "sharp";
 
 export const config = {
   api: {
@@ -86,8 +86,10 @@ export default async function handler(
     const file = Array.isArray(files.photo) ? files.photo[0] : files.photo;
     if (file && file.filepath) {
       try {
-        const buffer = fs.readFileSync(file.filepath);
-        const filename = `${Date.now()}-${file.originalFilename}`;
+        const buffer = await sharp(file.filepath).toBuffer(); // sharp로 직접 버퍼 생성
+        const filename = `${Date.now()}-${
+          file.originalFilename || "image.jpg"
+        }`;
         photoPath = await resizeAndSave(buffer, filename);
       } catch (error) {
         console.error("이미지 처리 오류:", error);
@@ -95,8 +97,6 @@ export default async function handler(
           .status(500)
           .json({ message: "이미지 처리 중 오류가 발생했습니다." });
       }
-      // } else {
-      //   return res.status(400).json({ message: "사진 파일이 필요합니다." });
     }
 
     try {
@@ -104,7 +104,7 @@ export default async function handler(
         data: {
           name,
           birthDay: new Date(birthDay),
-          gender: gender as "male" | "female", // Gender 열거형으로 캐스팅
+          gender: gender as "male" | "female",
           photoPath,
           phone,
           lineId,
