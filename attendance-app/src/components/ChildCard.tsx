@@ -18,7 +18,7 @@ type Child = {
 function getGrade(birthDay: string): string {
   const birthYear = new Date(birthDay).getFullYear();
   const currentYear = new Date().getFullYear();
-  const age = currentYear - birthYear + 1;
+  const age = currentYear - birthYear;
 
   if (age === 13) return "中学 1年";
   if (age === 14) return "中学 2年";
