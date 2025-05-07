@@ -30,8 +30,8 @@ export const ChildrenSection = ({
   if (childList.length === 0) return null;
 
   return (
-    <div className="mt-10">
-      <h2 className="text-lg font-semibold mb-3">{title}</h2>
+    <div className="mt-10 mb-10 p-2 pb-8 rounded-lg border border-gray-300 shadow-lg ">
+      <h2 className="mt-8 pl-5 text-xl font-semibold mb-3">{title}</h2>
       <div className="grid gap-4">
         {childList.map((child, i) => (
           <ChildCard

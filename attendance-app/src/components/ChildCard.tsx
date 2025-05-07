@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import { useState, useRef, useEffect } from "react";
 
 type Child = {
   id: string;
@@ -42,45 +43,100 @@ export const ChildCard = ({
   onEdit?: (id: string) => void;
   highlight?: boolean;
 }) => {
+  // 드롭다운 메뉴의 표시 여부를 관리하는 상태
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // 외부 클릭 시 드롭다운 닫기
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // 드롭다운 토글 함수
+  const toggleDropdown = () => {
+    setIsDropdownOpen((prev) => !prev);
+  };
+
   return (
     <div
-      className={`border rounded p-4 flex items-center gap-4 ${
-        checked ? "bg-green-300 border-green-700" : ""
+      className={`rounded p-4 border border-gray-200 ${
+        checked ? "border-green-500 border-2" : ""
       }`}
     >
-      <Image
-        width={500}
-        height={500}
-        src={child.photoPath || "/default_user.png"}
-        alt={child.name}
-        className="w-20 h-20 object-cover rounded"
-        priority={highlight}
-        sizes="80px"
-      />
-      <div className="flex-1">
-        <p className="font-semibold">{child.name}</p>
-        <p className="text-sm text-gray-600">{getGrade(child.birthDay)}</p>
-      </div>
-      {onCheck && onEdit && (
-        <div className="flex flex-col gap-2">
+      <div className="flex justify-between items-center mb-2">
+        {checked ? (
+          <p className="text-green-500 font-extrabold">◉</p>
+        ) : (
+          <p className="text-gray-500">◯</p>
+        )}
+        {/* 드롭다운 메뉴를 포함한 컨테이너 */}
+        <div className="relative" ref={dropdownRef}>
           <button
-            onClick={() => onCheck(child.id)}
-            className={`px-4 py-2 rounded text-white ${
-              checked
-                ? "bg-red-500 hover:bg-red-600"
-                : "bg-blue-500 hover:bg-blue-600"
-            }`}
+            className="text-blue-500 hover:text-blue-700"
+            onClick={toggleDropdown}
+            aria-haspopup="true"
+            aria-expanded={isDropdownOpen}
           >
-            {checked ? "出席キャンセル" : "出席チェック"}
+            more
           </button>
-          <button
-            onClick={() => onEdit(child.id)}
-            className="px-4 py-2 rounded text-white bg-yellow-500 hover:bg-yellow-600"
-          >
-            修正
-          </button>
+          {isDropdownOpen && onEdit && (
+            <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow-lg z-10">
+              <button
+                onClick={() => {
+                  onEdit(child.id);
+                  setIsDropdownOpen(false); // 수정 클릭 시 드롭다운 닫기
+                }}
+                className="w-full px-4 py-2 text-left text-white bg-gray-500 hover:bg-gray-600 rounded"
+              >
+                修正
+              </button>
+            </div>
+          )}
         </div>
-      )}
+      </div>
+      <div className="flex items-center gap-4">
+        <Image
+          width={500}
+          height={500}
+          src={child.photoPath || "/default_user.png"}
+          alt={child.name}
+          className="w-30 h-30 object-cover rounded"
+          priority={highlight}
+          sizes="80px"
+        />
+        <div className="flex-1">
+          <div className="mb-6">
+            <p className="font-semibold">{child.name}</p>
+            <p className="text-sm text-gray-600">{getGrade(child.birthDay)}</p>
+          </div>
+          {onCheck && (
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => onCheck(child.id)}
+                className={`w-35 px-4 py-2 rounded text-white ${
+                  checked
+                    ? "bg-red-500 hover:bg-red-600"
+                    : "bg-blue-500 hover:bg-blue-600"
+                }`}
+              >
+                {checked ? "出席キャンセル" : "出席チェック"}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
