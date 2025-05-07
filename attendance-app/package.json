@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "init": "npx prisma migrate dev && npx prisma db seed",
-    "dev": "npx prisma migrate dev && npx prisma db seed && next dev --turbopack",
-    "build": "npx prisma generate && npx prisma migrate deploy && npx prisma db seed && next build",
+    "dev": "npx prisma generate && npx prisma migrate dev && npx prisma db seed && next dev --turbopack",
+    "build": "npx prisma generate && npx prisma migrate deploy && next build",
     "start": "next start",
     "lint": "next lint",
     "prisma:migrate": "npx prisma migrate dev",
