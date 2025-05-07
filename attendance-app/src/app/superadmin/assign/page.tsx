@@ -52,7 +52,7 @@ export default function AssignChildPage() {
   const getGrade = (birthDay: string): string => {
     const birthYear = new Date(birthDay).getFullYear();
     const currentYear = new Date().getFullYear();
-    const age = currentYear - birthYear + 1; // 한국 나이
+    const age = currentYear - birthYear; // 한국 나이
 
     // 중학교: 13~15세 (1~3학년)
     if (age === 13) return "中学 1年";
