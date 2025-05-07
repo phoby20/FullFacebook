@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { jwtDecode } from "jwt-decode";
+import Loading from "@/components/Loading";
 
 type DecodedToken = {
   userId: string;
@@ -52,6 +53,7 @@ export default function RegisterPage() {
   });
   const [submitError, setSubmitError] = useState<string>("");
   const [role, setRole] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
   // 이메일 형식 검증 정규식
@@ -71,6 +73,7 @@ export default function RegisterPage() {
     try {
       const decoded: DecodedToken = jwtDecode(token);
       setRole(decoded.role);
+      setIsLoading(false);
     } catch {
       router.push("/login");
     }
@@ -115,6 +118,7 @@ export default function RegisterPage() {
     }
 
     setSubmitError("");
+    setIsLoading(true);
 
     const res = await fetch("/api/auth/register", {
       method: "POST",
@@ -122,12 +126,17 @@ export default function RegisterPage() {
       body: JSON.stringify(form),
     });
     const data = await res.json();
-    if (res.ok) router.push("/dashboard");
-    else setSubmitError(data.message || "先生追加に失敗しました");
+    if (res.ok) {
+      router.push("/dashboard");
+    } else {
+      setSubmitError(data.message || "先生追加に失敗しました");
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="p-6">
+      {isLoading && <Loading />}
       <h1 className="text-xl mb-4">先生追加</h1>
       {submitError && (
         <p className="text-red-500 mb-4" aria-live="polite">

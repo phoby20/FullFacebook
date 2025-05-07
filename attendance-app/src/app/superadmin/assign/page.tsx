@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
+import Loading from "@/components/Loading";
 
 type Admin = {
   id: string;
@@ -27,6 +28,7 @@ export default function AssignChildPage() {
   const [children, setChildren] = useState<Child[]>([]);
   const [selectedAdmin, setSelectedAdmin] = useState("");
   const [selectedChild, setSelectedChild] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [errors, setErrors] = useState<{ admin: boolean; child: boolean }>({
     admin: false,
@@ -43,6 +45,7 @@ export default function AssignChildPage() {
       .then((res) => res.json())
       .then((data: Child[]) => setChildren(data))
       .catch((error) => console.error("Error fetching children:", error));
+    setIsLoading(false);
   }, []);
 
   // 학년 계산 함수
@@ -74,6 +77,7 @@ export default function AssignChildPage() {
       setMessage("선생님과 아이를 모두 선택해주세요.");
       return;
     }
+    setIsLoading(true);
 
     /** 한번 배정한 아이를 수정하지 못하게 하려면 아래의 코드를 활성화 할것 */
     // const selectedChildData = children.find(
@@ -109,12 +113,15 @@ export default function AssignChildPage() {
           res.json()
         );
         setAdmins(updatedAdmins);
+        setIsLoading(false);
       } else {
         setMessage(data.message || "割り当て失敗");
+        setIsLoading(false);
       }
     } catch (error) {
       console.error("Error assigning child:", error);
       setMessage("割り当てにエラーが発生しました");
+      setIsLoading(false);
     }
   };
 
@@ -127,6 +134,7 @@ export default function AssignChildPage() {
 
   return (
     <div className="p-6">
+      {isLoading && <Loading />}
       <h1 className="text-xl font-bold mb-4">クラス設定</h1>
       {message && (
         <div

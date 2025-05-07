@@ -6,6 +6,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ko } from "date-fns/locale";
 import Image from "next/image";
+import Loading from "@/components/Loading";
 
 type DecodedToken = {
   userId: string;
@@ -28,6 +29,7 @@ export default function EditChildPage() {
   const router = useRouter();
   const params = useParams<{ childId: string }>();
   const childId = params?.childId;
+  const [isLoading, setIsLoading] = useState(true);
   const [child, setChild] = useState<Child | null>(null);
   const [form, setForm] = useState({
     name: "",
@@ -88,6 +90,7 @@ export default function EditChildPage() {
           cacaoTalkId: data.cacaoTalkId || "",
         });
         setPreview(data.photoPath);
+        setIsLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching child:", error);
@@ -107,10 +110,10 @@ export default function EditChildPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
-      // if (selectedFile.size > 5 * 1024 * 1024) {
-      //   setMessage("파일 크기는 5MB 이하여야 합니다.");
-      //   return;
-      // }
+      if (selectedFile.size > 1024 * 1024) {
+        setMessage("파일 크기는 1MB 이하여야 합니다.");
+        return;
+      }
       if (!["image/jpeg", "image/png"].includes(selectedFile.type)) {
         setMessage("JPEGまたはPNG形式のみの画像を選択してください。");
         return;
@@ -123,6 +126,7 @@ export default function EditChildPage() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
+    setIsLoading(true);
     e.preventDefault();
     const newErrors = {
       name: !form.name,
@@ -133,6 +137,7 @@ export default function EditChildPage() {
 
     if (Object.values(newErrors).some((error) => error)) {
       setMessage("必須項目を入力してください。");
+      setIsLoading(false);
       return;
     }
 
@@ -140,7 +145,7 @@ export default function EditChildPage() {
     if (file) {
       const formData = new FormData();
       formData.append("file", file);
-      const uploadRes = await fetch("/api/upload", {
+      const uploadRes = await fetch("/api/child/upload", {
         method: "POST",
         body: formData,
       });
@@ -148,6 +153,7 @@ export default function EditChildPage() {
       if (uploadData.photoPath) {
         newPhotoPath = uploadData.photoPath;
       } else {
+        setIsLoading(false);
         setMessage("画像アップロードに失敗しました。");
         return;
       }
@@ -174,13 +180,15 @@ export default function EditChildPage() {
     const data = await res.json();
     if (res.ok) {
       setMessage("修正完了!");
-      setTimeout(() => router.push("/dashboard"), 1000);
+      setIsLoading(false);
+      router.push("/dashboard");
     } else {
       setMessage(data.message || "修正失敗");
     }
   };
 
   const handleDelete = async () => {
+    setIsLoading(true);
     if (!window.confirm("この学生の情報を削除しますか?")) {
       return;
     }
@@ -198,12 +206,15 @@ export default function EditChildPage() {
       const data = await res.json();
       if (res.ok) {
         setMessage("削除完了!");
-        setTimeout(() => router.push("/dashboard"), 1000);
+        setIsLoading(false);
+        router.push("/dashboard");
       } else {
+        setIsLoading(false);
         setMessage(data.message || "削除失敗");
       }
     } catch (error) {
       console.error("Error deleting child:", error);
+      setIsLoading(false);
       setMessage("削除中にエラーが発生しました。");
     }
   };
@@ -218,6 +229,7 @@ export default function EditChildPage() {
 
   return (
     <div className="p-6">
+      {isLoading && <Loading />}
       <h1 className="text-xl font-bold mb-4">学生情報修正</h1>
       {message && (
         <div

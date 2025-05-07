@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
+import Loading from "@/components/Loading";
 
 interface User {
   id: string;
@@ -103,6 +104,7 @@ export default function AssignGroupPage() {
       setError("그룹을 선택해주세요.");
       return;
     }
+    setIsLoading(true);
 
     try {
       const res = await fetch("/api/superadmin/assign-group", {
@@ -112,21 +114,25 @@ export default function AssignGroupPage() {
       });
       if (!res.ok) {
         const errorData = await res.json();
+        setIsLoading(false);
         throw new Error(errorData.message || "그룹 지정 실패");
       }
-      alert("그룹 지정 완료");
+      alert("グループ指定完了");
+      setIsLoading(false);
     } catch (err: unknown) {
       setError(
         err instanceof Error ? err.message : "그룹 지정에 실패했습니다."
       );
+      setIsLoading(false);
     }
   };
 
   const handleCreateGroup = async () => {
     if (!newGroupName) {
-      setError("그룹 이름을 입력해주세요.");
+      setError("グループ名を入力してください");
       return;
     }
+    setIsLoading(true);
 
     try {
       const res = await fetch("/api/superadmin/groups", {
@@ -141,7 +147,8 @@ export default function AssignGroupPage() {
       const newGroup: Group = await res.json();
       setGroups([...groups, newGroup]);
       setNewGroupName("");
-      alert("그룹 생성 완료");
+      alert("グループ生成完了");
+      setIsLoading(false);
     } catch (err: unknown) {
       setError(
         err instanceof Error ? err.message : "그룹 생성에 실패했습니다."
@@ -149,97 +156,96 @@ export default function AssignGroupPage() {
     }
   };
 
-  if (isLoading) {
-    return <div className="p-6">로딩 중...</div>;
-  }
-
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-xl mb-4">그룹 지정</h1>
-      {error && (
-        <p className="text-red-500 mb-4" aria-live="polite">
-          {error}
-        </p>
-      )}
+    <>
+      {isLoading && <Loading />}
+      <div className="p-6 max-w-4xl mx-auto">
+        <h1 className="text-xl mb-4">그룹 지정</h1>
+        {error && (
+          <p className="text-red-500 mb-4" aria-live="polite">
+            {error}
+          </p>
+        )}
 
-      {/* 그룹 생성 폼 */}
-      <div className="mb-6">
-        <h2 className="text-lg mb-2">새 그룹 생성</h2>
-        <div className="flex gap-4">
-          <input
-            type="text"
-            className="border p-2 w-full border-gray-300"
-            placeholder="그룹 이름을 입력해주세요"
-            value={newGroupName}
-            onChange={(e) => setNewGroupName(e.target.value)}
-          />
-          <button
-            onClick={handleCreateGroup}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            그룹 생성
-          </button>
+        {/* 그룹 생성 폼 */}
+        <div className="mb-6">
+          <h2 className="text-lg mb-2">새 그룹 생성</h2>
+          <div className="flex gap-4">
+            <input
+              type="text"
+              className="border p-2 w-full border-gray-300"
+              placeholder="그룹 이름을 입력해주세요"
+              value={newGroupName}
+              onChange={(e) => setNewGroupName(e.target.value)}
+            />
+            <button
+              onClick={handleCreateGroup}
+              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            >
+              그룹 생성
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* 사용자 목록 테이블 */}
-      <table className="w-full border-collapse">
-        <thead>
-          <tr className="bg-gray-200">
-            <th className="border p-2 text-left">이름</th>
-            <th className="border p-2 text-left">이메일</th>
-            <th className="border p-2 text-left">역할</th>
-            <th className="border p-2 text-left">현재 그룹</th>
-            <th className="border p-2 text-left">그룹 지정</th>
-            <th className="border p-2 text-left">액션</th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((user) => (
-            <tr key={user.id} className="border-b">
-              <td className="border p-2">{user.name}</td>
-              <td className="border p-2">{user.email}</td>
-              <td className="border p-2">{user.role}</td>
-              <td className="border p-2">
-                {user.groups.length > 0 ? user.groups[0].group.name : "미지정"}
-              </td>
-              <td className="border p-2">
-                <select
-                  className="border p-2 w-full"
-                  value={assignments[user.id] || ""}
-                  onChange={(e) =>
-                    setAssignments({
-                      ...assignments,
-                      [user.id]: e.target.value,
-                    })
-                  }
-                >
-                  <option value="" disabled>
-                    그룹 선택
-                  </option>
-                  {groups.map((group) => (
-                    <option key={group.id} value={group.id}>
-                      {group.name}
-                    </option>
-                  ))}
-                </select>
-              </td>
-              <td className="border p-2">
-                <button
-                  onClick={() => handleAssign(user.id)}
-                  className="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600"
-                >
-                  저장
-                </button>
-              </td>
+        {/* 사용자 목록 테이블 */}
+        <table className="w-full border-collapse">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="border p-2 text-left">이름</th>
+              <th className="border p-2 text-left">역할</th>
+              <th className="border p-2 text-left">현재 그룹</th>
+              <th className="border p-2 text-left">그룹 지정</th>
+              <th className="border p-2 text-left">액션</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {users.map((user) => (
+              <tr key={user.id} className="border-b">
+                <td className="border p-2">{user.name}</td>
+                <td className="border p-2">{user.role}</td>
+                <td className="border p-2">
+                  {user.groups.length > 0
+                    ? user.groups[0].group.name
+                    : "미지정"}
+                </td>
+                <td className="border p-2">
+                  <select
+                    className="border p-2 w-full"
+                    value={assignments[user.id] || ""}
+                    onChange={(e) =>
+                      setAssignments({
+                        ...assignments,
+                        [user.id]: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="" disabled>
+                      그룹 선택
+                    </option>
+                    {groups.map((group) => (
+                      <option key={group.id} value={group.id}>
+                        {group.name}
+                      </option>
+                    ))}
+                  </select>
+                </td>
+                <td className="border p-2">
+                  <button
+                    onClick={() => handleAssign(user.id)}
+                    className="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600"
+                  >
+                    저장
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
 
-      {users.length === 0 && (
-        <p className="mt-4 text-gray-600">사용자가 없습니다.</p>
-      )}
-    </div>
+        {users.length === 0 && (
+          <p className="mt-4 text-gray-600">사용자가 없습니다.</p>
+        )}
+      </div>
+    </>
   );
 }

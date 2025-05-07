@@ -124,11 +124,17 @@ export default function Header() {
       {/* 모바일 드롭다운 메뉴 */}
       {isMenuOpen && (
         <div className="md:hidden bg-gray-700 text-white mt-10 rounded-md shadow-lg">
-          <nav className="flex flex-col p-4 gap-2">
+          <nav className="flex flex-col p-4 gap-10">
+            <Link
+              href="/attendance"
+              className="text-center hover:text-gray-200 transition-colors"
+            >
+              出席現状
+            </Link>
             {role === "superAdmin" && (
               <Link
                 href="/superadmin/assign"
-                className="hover:text-blue-200 transition-colors"
+                className="text-center hover:text-blue-200 transition-colors"
                 onClick={() => setIsMenuOpen(false)}
               >
                 クラス設定
@@ -137,7 +143,7 @@ export default function Header() {
             {role === "master" && (
               <Link
                 href="/master/assign-organization"
-                className="hover:text-blue-200 transition-colors"
+                className="text-center hover:text-blue-200 transition-colors"
               >
                 団体指定
               </Link>
@@ -145,7 +151,7 @@ export default function Header() {
             {role === "superAdmin" && (
               <Link
                 href="/superadmin/assign-group"
-                className="hover:text-blue-200 transition-colors"
+                className="text-center hover:text-blue-200 transition-colors"
               >
                 グループ指定
               </Link>

@@ -21,7 +21,7 @@ export default async function handler(
   try {
     const form = new IncomingForm({
       keepExtensions: true,
-      maxFileSize: 4 * 1024 * 1024, // 4MB 제한
+      maxFileSize: 1024 * 1024, // 1MB 제한
     });
 
     const files: Files = await new Promise((resolve, reject) => {

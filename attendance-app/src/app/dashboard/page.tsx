@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { ChildrenSection } from "@/components/ChildrenSection";
+import Loading from "@/components/Loading";
 
 type DecodedToken = {
   userId: string;
@@ -35,6 +36,7 @@ export default function Dashboard() {
   const [userId, setUserId] = useState("");
   const [children, setChildren] = useState<Child[]>([]);
   const [admins, setAdmins] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [attendanceMap, setAttendanceMap] = useState<Record<string, boolean>>(
     {}
   );
@@ -53,6 +55,7 @@ export default function Dashboard() {
       const decoded: DecodedToken = jwtDecode(token);
       setRole(decoded.role);
       setUserId(decoded.userId);
+      setIsLoading(false);
     } catch {
       router.push("/login");
     }
@@ -71,17 +74,21 @@ export default function Dashboard() {
         .then((res) => res.json())
         .then((data) => setAdmins(data));
     }
+    setIsLoading(false);
   }, [role]);
 
   const checkAttendanceStatus = async (childId: string) => {
+    setIsLoading(true);
     const res = await fetch(`/api/attendance/status?childId=${childId}`, {
       credentials: "include",
     });
     const data = await res.json();
     setAttendanceMap((prev) => ({ ...prev, [childId]: data.checked }));
+    setIsLoading(false);
   };
 
   const handleCheckAttendance = async (childId: string) => {
+    setIsLoading(true);
     const checked = attendanceMap[childId];
     const endpoint = checked
       ? "/api/attendance/uncheck"
@@ -97,6 +104,7 @@ export default function Dashboard() {
     const data = await res.json();
     setMessage(data.message || "処理完了!");
     checkAttendanceStatus(childId);
+    setIsLoading(false);
   };
 
   const handleEditChild = (childId: string) =>
@@ -152,7 +160,7 @@ export default function Dashboard() {
           onEdit={handleEditChild}
         />
         {assigned.length ? (
-          <hr className="my-4 border-gray-300 mt-20 mb-15" />
+          <hr className="my-4 border-gray-300 mt-10 mb-10" />
         ) : null}
 
         <ChildrenSection
@@ -166,6 +174,7 @@ export default function Dashboard() {
 
   return (
     <div className="p-6">
+      {isLoading && <Loading />}
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-bold">出席チェック</h1>
         <div className="flex gap-4">
