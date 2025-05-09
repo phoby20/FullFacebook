@@ -146,11 +146,13 @@ export default function Dashboard() {
 
     return (
       <>
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">担当学生</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-semibold text-gray-800">担当学生</h2>
         </div>
         {assigned.length === 0 ? (
-          <div className="text-gray-500">担当学生がいません</div>
+          <div className="text-gray-500 text-center py-4">
+            担当学生がいません
+          </div>
         ) : null}
         <ChildrenSection
           title=""
@@ -159,10 +161,7 @@ export default function Dashboard() {
           onCheck={handleCheckAttendance}
           onEdit={handleEditChild}
         />
-        {assigned.length ? (
-          <hr className="my-4 border-gray-300 mt-10 mb-10" />
-        ) : null}
-
+        {assigned.length ? <hr className="my-8 border-gray-200" /> : null}
         <ChildrenSection
           title="その他の学生"
           childList={others}
@@ -173,30 +172,39 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-6">
       {isLoading && <Loading />}
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">出席チェック</h1>
-        <div className="flex gap-4">
-          <button
-            onClick={handleAddChild}
-            className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-          >
-            学生追加
-          </button>
-          {role === "superAdmin" || role === "master" ? (
+      <header className="bg-white shadow-lg rounded-xl p-6 mb-8 top-0 z-10">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold text-gray-800 w-200">
+            出席チェック
+          </h1>
+          <div className="flex gap-4">
             <button
-              onClick={handleAddAdmin}
-              className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+              onClick={handleAddChild}
+              className="w-30 bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300"
+              aria-label="学生追加ボタン"
             >
-              先生追加
+              学生追加
             </button>
-          ) : null}
+            {(role === "superAdmin" || role === "master") && (
+              <button
+                onClick={handleAddAdmin}
+                className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-yellow-600 hover:to-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-all duration-300"
+                aria-label="先生追加ボタン"
+              >
+                先生追加
+              </button>
+            )}
+          </div>
         </div>
-      </div>
+      </header>
 
       {message && (
-        <div className="text-green-600 font-bold text-lg" aria-live="polite">
+        <div
+          className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg shadow-md animate-fade-in"
+          aria-live="polite"
+        >
           {message}
         </div>
       )}

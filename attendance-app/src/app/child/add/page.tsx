@@ -40,6 +40,7 @@ export default function AddChildPage() {
   const [submitError, setSubmitError] = useState<string>("");
   const [userId, setUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -56,6 +57,16 @@ export default function AddChildPage() {
     fetchUser();
     setIsLoading(false);
   }, [router]);
+
+  useEffect(() => {
+    if (form.photo) {
+      const reader = new FileReader();
+      reader.onload = () => setPhotoPreview(reader.result as string);
+      reader.readAsDataURL(form.photo);
+    } else {
+      setPhotoPreview(null);
+    }
+  }, [form.photo]);
 
   const handleInputChange = (
     field: keyof Omit<FormState, "photo">,
@@ -101,170 +112,211 @@ export default function AddChildPage() {
     if (form.cacaoTalkId) formData.append("cacaoTalkId", form.cacaoTalkId);
     if (form.photo) formData.append("photo", form.photo);
 
-    const res = await fetch("/api/child/add", {
-      method: "POST",
-      body: formData,
-    });
+    try {
+      const res = await fetch("/api/child/add", {
+        method: "POST",
+        body: formData,
+      });
 
-    const data = await res.json();
-    if (res.ok) {
-      alert("登録が完了しました");
-      router.push("/dashboard");
-      setIsLoading(false);
-    } else {
-      setSubmitError(data.message || "登録に失敗しました");
+      const data = await res.json();
+      if (res.ok) {
+        alert("登録が完了しました");
+        router.push("/dashboard");
+      } else {
+        setSubmitError(data.message || "登録に失敗しました");
+      }
+    } catch (err) {
+      setSubmitError(`サーバーエラーが発生しました (${err})`);
+    } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="p-6">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-6">
       {isLoading && <Loading />}
-      <h1 className="text-xl mb-4">学生登録</h1>
-      {submitError && (
-        <p className="text-red-500 mb-4" aria-live="polite">
-          {submitError}
-        </p>
-      )}
+      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-lg transform transition-all hover:shadow-2xl">
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
+          学生登録
+        </h1>
 
-      <div className="mb-4">
-        <label
-          htmlFor="name"
-          className="block text-sm font-medium text-gray-700 mb-[10px]"
+        {submitError && (
+          <div
+            className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg shadow-md animate-fade-in"
+            aria-live="polite"
+            id="form-error"
+          >
+            {submitError}
+          </div>
+        )}
+
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit();
+          }}
+          aria-describedby="form-error"
         >
-          名前<span className="text-red-500">*</span>
-        </label>
-        <input
-          id="name"
-          className={`border p-2 w-full ${
-            errors.name ? "border-red-500" : "border-gray-300"
-          }`}
-          placeholder="名前を入力してください"
-          value={form.name}
-          onChange={(e) => handleInputChange("name", e.target.value)}
-          required
-        />
+          <div className="mb-6">
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-600 mb-2"
+            >
+              名前<span className="text-red-500">*</span>
+            </label>
+            <input
+              id="name"
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${
+                errors.name ? "border-red-500" : "border-gray-300"
+              }`}
+              placeholder="名前を入力してください"
+              value={form.name}
+              onChange={(e) => handleInputChange("name", e.target.value)}
+              required
+              aria-invalid={errors.name}
+              aria-describedby="name-error form-error"
+            />
+          </div>
+
+          <div className="mb-6">
+            <label
+              htmlFor="birthDay"
+              className="block text-sm font-medium text-gray-600 mb-2"
+            >
+              生年月日<span className="text-red-500">*</span>
+            </label>
+            <DatePicker
+              id="birthDay"
+              selected={form.birthDay ? new Date(form.birthDay) : null}
+              onChange={(date: Date | null) =>
+                handleInputChange(
+                  "birthDay",
+                  date ? date.toISOString().split("T")[0] : ""
+                )
+              }
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${
+                errors.birthDay ? "border-red-500" : "border-gray-300"
+              }`}
+              dateFormat="yyyy-MM-dd"
+              maxDate={new Date()}
+              placeholderText="生年月日を選択してください"
+              required
+              aria-invalid={errors.birthDay}
+              aria-describedby="birthDay-error form-error"
+            />
+          </div>
+
+          <div className="mb-6">
+            <label
+              htmlFor="gender"
+              className="block text-sm font-medium text-gray-600 mb-2"
+            >
+              性別<span className="text-red-500">*</span>
+            </label>
+            <select
+              id="gender"
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${
+                errors.gender ? "border-red-500" : "border-gray-300"
+              }`}
+              value={form.gender}
+              onChange={(e) => handleInputChange("gender", e.target.value)}
+              required
+              aria-invalid={errors.gender}
+              aria-describedby="gender-error form-error"
+            >
+              <option value="" disabled>
+                性別を選択してください
+              </option>
+              <option value="male">男性</option>
+              <option value="female">女性</option>
+            </select>
+          </div>
+
+          <div className="mb-6">
+            <label
+              htmlFor="phone"
+              className="block text-sm font-medium text-gray-600 mb-2"
+            >
+              電話番号
+            </label>
+            <input
+              id="phone"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+              placeholder="電話番号を入力してください"
+              value={form.phone}
+              onChange={(e) => handleInputChange("phone", e.target.value)}
+            />
+          </div>
+
+          <div className="mb-6">
+            <label
+              htmlFor="lineId"
+              className="block text-sm font-medium text-gray-600 mb-2"
+            >
+              Line ID
+            </label>
+            <input
+              id="lineId"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+              placeholder="Line IDを入力してください"
+              value={form.lineId}
+              onChange={(e) => handleInputChange("lineId", e.target.value)}
+            />
+          </div>
+
+          <div className="mb-6">
+            <label
+              htmlFor="cacaoTalkId"
+              className="block text-sm font-medium text-gray-600 mb-2"
+            >
+              CacaoTalk ID
+            </label>
+            <input
+              id="cacaoTalkId"
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+              placeholder="CacaoTalk IDを入力してください"
+              value={form.cacaoTalkId}
+              onChange={(e) => handleInputChange("cacaoTalkId", e.target.value)}
+            />
+          </div>
+
+          <div className="mb-6">
+            <label
+              htmlFor="photo"
+              className="block text-sm font-medium text-gray-600 mb-2"
+            >
+              写真 (オプション)
+            </label>
+            <input
+              id="photo"
+              type="file"
+              accept="image/*"
+              className="w-full p-3 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-500 file:text-white file:font-semibold hover:file:bg-blue-600 transition-all duration-300"
+              onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
+            />
+            {photoPreview && (
+              <div className="mt-4">
+                <img
+                  src={photoPreview}
+                  alt="写真プレビュー"
+                  className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200"
+                />
+              </div>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={`w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 ${
+              isLoading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            aria-label="登録ボタン"
+          >
+            {isLoading ? "登録中..." : "登録"}
+          </button>
+        </form>
       </div>
-
-      <div className="mb-4">
-        <label
-          htmlFor="birthDay"
-          className="block text-sm font-medium text-gray-700 mb-[10px]"
-        >
-          生年月日<span className="text-red-500">*</span>
-        </label>
-        <DatePicker
-          id="birthDay"
-          selected={form.birthDay ? new Date(form.birthDay) : null}
-          onChange={(date: Date | null) =>
-            handleInputChange(
-              "birthDay",
-              date ? date.toISOString().split("T")[0] : ""
-            )
-          }
-          className={`border p-2 w-full ${
-            errors.birthDay ? "border-red-500" : "border-gray-300"
-          }`}
-          dateFormat="yyyy-MM-dd"
-          maxDate={new Date()}
-          placeholderText="生年月日を入力してください"
-          required
-        />
-      </div>
-
-      <div className="mb-4">
-        <label
-          htmlFor="gender"
-          className="block text-sm font-medium text-gray-700 mb-[10px]"
-        >
-          性別<span className="text-red-500">*</span>
-        </label>
-        <select
-          id="gender"
-          className={`border p-2 w-full ${
-            errors.gender ? "border-red-500" : "border-gray-300"
-          }`}
-          value={form.gender}
-          onChange={(e) => handleInputChange("gender", e.target.value)}
-          required
-        >
-          <option value="" disabled>
-            性別を選択してください
-          </option>
-          <option value="male">男性</option>
-          <option value="female">女性</option>
-        </select>
-      </div>
-
-      <div className="mb-4">
-        <label
-          htmlFor="phone"
-          className="block text-sm font-medium text-gray-700 mb-[10px]"
-        >
-          電話番号
-        </label>
-        <input
-          id="phone"
-          className="border p-2 w-full border-gray-300"
-          placeholder="電話番号を入力してください"
-          value={form.phone}
-          onChange={(e) => handleInputChange("phone", e.target.value)}
-        />
-      </div>
-
-      <div className="mb-4">
-        <label
-          htmlFor="lineId"
-          className="block text-sm font-medium text-gray-700 mb-[10px]"
-        >
-          Line ID
-        </label>
-        <input
-          id="lineId"
-          className="border p-2 w-full border-gray-300"
-          placeholder="Line IDを入力してください"
-          value={form.lineId}
-          onChange={(e) => handleInputChange("lineId", e.target.value)}
-        />
-      </div>
-
-      <div className="mb-4">
-        <label
-          htmlFor="cacaoTalkId"
-          className="block text-sm font-medium text-gray-700 mb-[10px]"
-        >
-          CacaoTalk ID
-        </label>
-        <input
-          id="cacaoTalkId"
-          className="border p-2 w-full border-gray-300"
-          placeholder="CacaoTalk IDを入力してください"
-          value={form.cacaoTalkId}
-          onChange={(e) => handleInputChange("cacaoTalkId", e.target.value)}
-        />
-      </div>
-
-      <div className="mb-4">
-        <label
-          htmlFor="photo"
-          className="block text-sm font-medium text-gray-700 mb-[10px]"
-        >
-          写真 (オプション)
-        </label>
-        <input
-          id="photo"
-          type="file"
-          className="border p-2 w-full border-gray-300"
-          onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
-        />
-      </div>
-
-      <button
-        className="bg-blue-500 text-white px-4 py-2"
-        onClick={handleSubmit}
-      >
-        登録
-      </button>
     </div>
   );
 }

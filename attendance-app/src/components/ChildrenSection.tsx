@@ -30,9 +30,11 @@ export const ChildrenSection = ({
   if (childList.length === 0) return null;
 
   return (
-    <div className="mt-10 mb-10 p-2 pb-8 rounded-lg border border-gray-300 shadow-lg ">
-      <h2 className="mt-8 pl-5 text-xl font-semibold mb-3">{title}</h2>
-      <div className="grid gap-4">
+    <div className="mb-12 p-6 bg-white rounded-2xl shadow-xl border border-gray-100 transform transition-all hover:shadow-2xl">
+      {title && (
+        <h2 className="text-2xl font-semibold text-gray-800 mb-6">{title}</h2>
+      )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {childList.map((child, i) => (
           <ChildCard
             key={child.id}

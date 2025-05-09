@@ -5,6 +5,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { jwtDecode } from "jwt-decode";
 import Loading from "@/components/Loading";
+import { ko } from "date-fns/locale";
 
 type DecodedToken = {
   userId: string;
@@ -13,7 +14,6 @@ type DecodedToken = {
   iat: number;
 };
 
-// form과 errors 객체의 타입 정의
 interface FormState {
   name: string;
   email: string;
@@ -30,7 +30,7 @@ interface ErrorsState {
   role: boolean;
   birthDay: boolean;
   gender: boolean;
-  emailFormat: boolean; // 이메일 형식 오류 추가
+  emailFormat: boolean;
 }
 
 export default function RegisterPage() {
@@ -56,7 +56,6 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
 
-  // 이메일 형식 검증 정규식
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -68,7 +67,10 @@ export default function RegisterPage() {
       .find((row) => row.startsWith("token="))
       ?.split("=")[1];
 
-    if (!token) return router.push("/login");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
 
     try {
       const decoded: DecodedToken = jwtDecode(token);
@@ -82,7 +84,6 @@ export default function RegisterPage() {
   const handleInputChange = (field: keyof FormState, value: string) => {
     setForm({ ...form, [field]: value });
 
-    // 이메일 필드의 경우 형식도 검증
     if (field === "email") {
       setErrors({
         ...errors,
@@ -94,8 +95,8 @@ export default function RegisterPage() {
     }
   };
 
-  const handleRegister = async () => {
-    // 모든 필드 유효성 검사
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
     const newErrors: ErrorsState = {
       name: !form.name,
       email: !form.email,
@@ -107,12 +108,11 @@ export default function RegisterPage() {
     };
     setErrors(newErrors);
 
-    // 하나라도 오류가 있으면 제출 중단
     if (Object.values(newErrors).some((error) => error)) {
       setSubmitError(
         newErrors.emailFormat
-          ? "올바른 이메일 형식을 입력해주세요."
-          : "모든 필수 항목을 입력해주세요."
+          ? "正しいメールアドレスを入力してください。"
+          : "すべての必須項目を入力してください。"
       );
       return;
     }
@@ -120,173 +120,226 @@ export default function RegisterPage() {
     setSubmitError("");
     setIsLoading(true);
 
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      router.push("/dashboard");
-    } else {
-      setSubmitError(data.message || "先生追加に失敗しました");
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        router.push("/dashboard");
+      } else {
+        setSubmitError(data.message || "先生の追加に失敗しました");
+      }
+    } catch (error) {
+      setSubmitError(`登録中にエラーが発生しました ${error}`);
+    } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="p-6">
-      {isLoading && <Loading />}
-      <h1 className="text-xl mb-4">先生追加</h1>
-      {submitError && (
-        <p className="text-red-500 mb-4" aria-live="polite">
-          {submitError}
-        </p>
-      )}
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-6">
+      {isLoading && <Loading message="データを読み込んでいます..." />}
+      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-lg transform transition-all hover:shadow-2xl">
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
+          先生の追加
+        </h1>
 
-      <div className="mb-4">
-        <label
-          htmlFor="name"
-          className="block text-sm font-medium text-gray-700 mb-[10px]"
-        >
-          名前<span className="text-red-500">*</span>
-        </label>
-        <input
-          id="name"
-          className={`border p-2 w-full ${
-            errors.name ? "border-red-500" : "border-gray-300"
-          }`}
-          placeholder="名前を入力してください"
-          value={form.name}
-          onChange={(e) => handleInputChange("name", e.target.value)}
-          required
-        />
-      </div>
-
-      <div className="mb-4">
-        <label
-          htmlFor="email"
-          className="block text-sm font-medium text-gray-700 mb-[10px]"
-        >
-          Email<span className="text-red-500">*</span>
-        </label>
-        <input
-          id="email"
-          className={`border p-2 w-full ${
-            errors.email || errors.emailFormat
-              ? "border-red-500"
-              : "border-gray-300"
-          }`}
-          placeholder="Emailを入力してください"
-          type="email"
-          value={form.email}
-          onChange={(e) => handleInputChange("email", e.target.value)}
-          required
-        />
-        {errors.emailFormat && (
-          <p className="text-red-500 text-sm mt-1">
-            email形式が正しくありません。
-          </p>
+        {submitError && (
+          <div
+            className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg shadow-md animate-fade-in"
+            aria-live="polite"
+            id="form-message"
+          >
+            {submitError}
+          </div>
         )}
-      </div>
 
-      <div className="mb-4">
-        <label
-          htmlFor="password"
-          className="block text-sm font-medium text-gray-700 mb-[10px]"
+        <form
+          onSubmit={handleRegister}
+          aria-describedby="form-message"
+          className="space-y-6"
         >
-          パスワード<span className="text-red-500">*</span>
-        </label>
-        <input
-          id="password"
-          type="password"
-          className={`border p-2 w-full ${
-            errors.password ? "border-red-500" : "border-gray-300"
-          }`}
-          placeholder="パスワードを入力してください"
-          value={form.password}
-          onChange={(e) => handleInputChange("password", e.target.value)}
-          required
-        />
-      </div>
+          <div>
+            <label
+              htmlFor="name"
+              className="block text-sm font-medium text-gray-600 mb-2"
+            >
+              名前<span className="text-red-500">*</span>
+            </label>
+            <input
+              id="name"
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${
+                errors.name ? "border-red-500" : "border-gray-300"
+              }`}
+              placeholder="名前を入力してください"
+              value={form.name}
+              onChange={(e) => handleInputChange("name", e.target.value)}
+              required
+              aria-invalid={errors.name}
+              aria-describedby="form-message"
+            />
+          </div>
 
-      <div className="mb-4">
-        <label
-          htmlFor="birthDay"
-          className="block text-sm font-medium text-gray-700 mb-[10px]"
-        >
-          生年月日<span className="text-red-500">*</span>
-        </label>
-        <DatePicker
-          id="birthDay"
-          selected={form.birthDay ? new Date(form.birthDay) : null}
-          onChange={(date: Date | null) =>
-            handleInputChange(
-              "birthDay",
-              date ? date.toISOString().split("T")[0] : ""
-            )
-          }
-          className={`border p-2 w-full ${
-            errors.birthDay ? "border-red-500" : "border-gray-300"
-          }`}
-          dateFormat="yyyy-MM-dd"
-          maxDate={new Date()}
-          placeholderText="生年月日を入力してください"
-          required
-        />
-      </div>
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-600 mb-2"
+            >
+              Email<span className="text-red-500">*</span>
+            </label>
+            <input
+              id="email"
+              type="email"
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${
+                errors.email || errors.emailFormat
+                  ? "border-red-500"
+                  : "border-gray-300"
+              }`}
+              placeholder="メールアドレスを入力してください"
+              value={form.email}
+              onChange={(e) => handleInputChange("email", e.target.value)}
+              required
+              aria-invalid={errors.email || errors.emailFormat}
+              aria-describedby="email-error form-message"
+            />
+            {errors.emailFormat && (
+              <p
+                className="text-red-500 text-sm mt-1"
+                id="email-error"
+                aria-live="polite"
+              >
+                メールアドレスの形式が正しくありません。
+              </p>
+            )}
+          </div>
 
-      <div className="mb-4">
-        <label
-          htmlFor="gender"
-          className="block text-sm font-medium text-gray-700 mb-[10px]"
-        >
-          性別<span className="text-red-500">*</span>
-        </label>
-        <select
-          id="gender"
-          className={`border p-2 w-full ${
-            errors.gender ? "border-red-500" : "border-gray-300"
-          }`}
-          value={form.gender}
-          onChange={(e) => handleInputChange("gender", e.target.value)}
-          required
-        >
-          <option value="" disabled>
-            性別を選択してください
-          </option>
-          <option value="male">男性</option>
-          <option value="female">女性</option>
-        </select>
-      </div>
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-600 mb-2"
+            >
+              パスワード<span className="text-red-500">*</span>
+            </label>
+            <input
+              id="password"
+              type="password"
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${
+                errors.password ? "border-red-500" : "border-gray-300"
+              }`}
+              placeholder="パスワードを入力してください"
+              value={form.password}
+              onChange={(e) => handleInputChange("password", e.target.value)}
+              required
+              aria-invalid={errors.password}
+              aria-describedby="form-message"
+            />
+          </div>
 
-      <div className="mb-4">
-        <label
-          htmlFor="role"
-          className="block text-sm font-medium text-gray-700 mb-[10px]"
-        >
-          役割<span className="text-red-500">*</span>
-        </label>
-        <select
-          id="role"
-          className={`border p-2 w-full ${
-            errors.role ? "border-red-500" : "border-gray-300"
-          }`}
-          value={form.role}
-          onChange={(e) => handleInputChange("role", e.target.value)}
-          required
-        >
-          <option value="admin">Admin</option>
-          {role === "master" && <option value="superAdmin">SuperAdmin</option>}
-        </select>
-      </div>
+          <div>
+            <label
+              htmlFor="birthDay"
+              className="block text-sm font-medium text-gray-600 mb-2"
+            >
+              生年月日<span className="text-red-500">*</span>
+            </label>
+            <DatePicker
+              id="birthDay"
+              selected={form.birthDay ? new Date(form.birthDay) : null}
+              onChange={(date: Date | null) =>
+                handleInputChange(
+                  "birthDay",
+                  date ? date.toISOString().split("T")[0] : ""
+                )
+              }
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${
+                errors.birthDay ? "border-red-500" : "border-gray-300"
+              }`}
+              dateFormat="yyyy-MM-dd"
+              maxDate={new Date()}
+              placeholderText="生年月日を選択してください"
+              locale={ko}
+              required
+              aria-invalid={errors.birthDay}
+              aria-describedby="form-message"
+            />
+          </div>
 
-      <button
-        onClick={handleRegister}
-        className="bg-green-500 text-white px-4 py-2"
-      >
-        先生追加
-      </button>
+          <div>
+            <label
+              htmlFor="gender"
+              className="block text-sm font-medium text-gray-600 mb-2"
+            >
+              性別<span className="text-red-500">*</span>
+            </label>
+            <select
+              id="gender"
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${
+                errors.gender ? "border-red-500" : "border-gray-300"
+              }`}
+              value={form.gender}
+              onChange={(e) => handleInputChange("gender", e.target.value)}
+              required
+              aria-invalid={errors.gender}
+              aria-describedby="form-message"
+            >
+              <option value="" disabled>
+                性別を選択してください
+              </option>
+              <option value="male">男性</option>
+              <option value="female">女性</option>
+            </select>
+          </div>
+
+          <div>
+            <label
+              htmlFor="role"
+              className="block text-sm font-medium text-gray-600 mb-2"
+            >
+              役割<span className="text-red-500">*</span>
+            </label>
+            <select
+              id="role"
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${
+                errors.role ? "border-red-500" : "border-gray-300"
+              }`}
+              value={form.role}
+              onChange={(e) => handleInputChange("role", e.target.value)}
+              required
+              aria-invalid={errors.role}
+              aria-describedby="form-message"
+            >
+              <option value="admin">管理者</option>
+              {role === "master" && (
+                <option value="superAdmin">スーパー管理者</option>
+              )}
+            </select>
+          </div>
+
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className={`flex-1 py-3 px-4 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-300 ${
+                isLoading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              aria-label="先生を追加"
+            >
+              {isLoading ? "追加中..." : "先生を追加"}
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard")}
+              className="flex-1 py-3 px-4 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg font-semibold hover:from-gray-600 hover:to-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-300"
+              aria-label="キャンセル"
+            >
+              キャンセル
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

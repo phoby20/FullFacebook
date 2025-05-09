@@ -43,11 +43,9 @@ export const ChildCard = ({
   onEdit?: (id: string) => void;
   highlight?: boolean;
 }) => {
-  // 드롭다운 메뉴의 표시 여부를 관리하는 상태
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // 외부 클릭 시 드롭다운 닫기
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -64,44 +62,43 @@ export const ChildCard = ({
     };
   }, []);
 
-  // 드롭다운 토글 함수
   const toggleDropdown = () => {
     setIsDropdownOpen((prev) => !prev);
   };
 
   return (
     <div
-      className={`rounded p-4 border border-gray-200 ${
-        checked ? "border-green-500 border-1" : ""
+      className={`p-6 bg-white rounded-xl shadow-md border border-gray-100 transform transition-all hover:scale-105 hover:shadow-xl ${
+        checked ? "border-green-400 border-2" : ""
       }`}
     >
-      <div className="flex justify-between items-center mb-2">
+      <div className="flex justify-between items-center mb-4">
         {checked ? (
-          <p className="text-green-500 font-extrabold">●</p>
+          <span className="text-green-500 text-2xl font-bold">✓</span>
         ) : (
-          <p className="text-gray-300">●</p>
+          <span className="text-gray-300 text-2xl">○</span>
         )}
-        {/* 드롭다운 메뉴를 포함한 컨테이너 */}
         <div className="relative" ref={dropdownRef}>
-          {onCheck ? (
+          {onCheck && (
             <button
-              className="text-blue-500 hover:text-blue-700"
+              className="text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200"
               onClick={toggleDropdown}
               aria-haspopup="true"
               aria-expanded={isDropdownOpen}
+              aria-label="オプションを開く"
             >
-              more
+              メニュー
             </button>
-          ) : null}
-
+          )}
           {isDropdownOpen && onEdit && (
-            <div className="absolute right-0 mt-2 w-32 bg-white border border-gray-200 rounded shadow-lg z-10">
+            <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 animate-fade-in">
               <button
                 onClick={() => {
                   onEdit(child.id);
-                  setIsDropdownOpen(false); // 수정 클릭 시 드롭다운 닫기
+                  setIsDropdownOpen(false);
                 }}
-                className="w-full px-4 py-2 text-left text-white bg-gray-500 hover:bg-gray-600 rounded"
+                className="w-full px-4 py-2 text-left text-white bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                aria-label="学生情報を修正"
               >
                 修正
               </button>
@@ -111,32 +108,31 @@ export const ChildCard = ({
       </div>
       <div className="flex items-center gap-4">
         <Image
-          width={500}
-          height={500}
+          width={80}
+          height={80}
           src={child.photoPath || "/default_user.png"}
           alt={child.name}
-          className="w-30 h-30 object-cover rounded"
+          className="w-25 h-25 object-cover rounded-full border-2 border-gray-200"
           priority={highlight}
           sizes="80px"
         />
         <div className="flex-1">
-          <div className="mb-6">
-            <p className="font-semibold">{child.name}</p>
-            <p className="text-sm text-gray-600">{getGrade(child.birthDay)}</p>
+          <div className="mb-4">
+            <p className="text-lg font-semibold text-gray-800">{child.name}</p>
+            <p className="text-sm text-gray-500">{getGrade(child.birthDay)}</p>
           </div>
           {onCheck && (
-            <div className="flex flex-col gap-2">
-              <button
-                onClick={() => onCheck(child.id)}
-                className={`w-35 px-4 py-2 rounded text-white ${
-                  checked
-                    ? "bg-red-500 hover:bg-red-600"
-                    : "bg-blue-500 hover:bg-blue-600"
-                }`}
-              >
-                {checked ? "出席キャンセル" : "出席チェック"}
-              </button>
-            </div>
+            <button
+              onClick={() => onCheck(child.id)}
+              className={`w-full py-2 px-4 rounded-lg font-semibold text-white transition-all duration-300 ${
+                checked
+                  ? "bg-red-500 hover:bg-red-600 focus:ring-red-500"
+                  : "bg-blue-500 hover:bg-blue-600 focus:ring-blue-500"
+              } focus:outline-none focus:ring-2 focus:ring-offset-2`}
+              aria-label={checked ? "出席キャンセル" : "出席チェック"}
+            >
+              {checked ? "出席キャンセル" : "出席チェック"}
+            </button>
           )}
         </div>
       </div>

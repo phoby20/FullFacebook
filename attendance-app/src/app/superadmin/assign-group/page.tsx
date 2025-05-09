@@ -49,15 +49,20 @@ export default function AssignGroupPage() {
         return;
       }
 
-      // 단체 내 사용자 목록 조회
-      fetch("/api/superadmin/users")
-        .then((res) => {
+      Promise.all([
+        fetch("/api/superadmin/users").then((res) => {
           if (!res.ok) throw new Error("사용자 목록 조회 실패");
           return res.json();
-        })
-        .then((data: User[]) => {
-          setUsers(data);
-          const initialAssignments = data.reduce(
+        }),
+        fetch("/api/superadmin/groups").then((res) => {
+          if (!res.ok) throw new Error("그룹 목록 조회 실패");
+          return res.json();
+        }),
+      ])
+        .then(([userData, groupData]) => {
+          setUsers(userData);
+          setGroups(groupData);
+          const initialAssignments = userData.reduce(
             (acc: { [key: string]: string }, user: User) => {
               acc[user.id] =
                 user.groups.length > 0 ? user.groups[0].group.id : "";
@@ -66,33 +71,15 @@ export default function AssignGroupPage() {
             {}
           );
           setAssignments(initialAssignments);
+          setIsLoading(false);
         })
-        .catch((err: unknown) => {
-          console.error("사용자 조회 실패:", err);
+        .catch((err) => {
+          console.error("데이터 조회 실패:", err);
           setError(
-            err instanceof Error
-              ? err.message
-              : "사용자 목록을 불러오지 못했습니다."
+            err instanceof Error ? err.message : "데이터를 불러오지 못했습니다."
           );
+          setIsLoading(false);
         });
-
-      // 그룹 목록 조회
-      fetch("/api/superadmin/groups")
-        .then((res) => {
-          if (!res.ok) throw new Error("그룹 목록 조회 실패");
-          return res.json();
-        })
-        .then((data: Group[]) => setGroups(data))
-        .catch((err: unknown) => {
-          console.error("그룹 조회 실패:", err);
-          setError(
-            err instanceof Error
-              ? err.message
-              : "그룹 목록을 불러오지 못했습니다."
-          );
-        });
-
-      setIsLoading(false);
     } catch {
       router.push("/login");
     }
@@ -114,16 +101,16 @@ export default function AssignGroupPage() {
       });
       if (!res.ok) {
         const errorData = await res.json();
-        setIsLoading(false);
         throw new Error(errorData.message || "그룹 지정 실패");
       }
+      setError("");
       alert("グループ指定完了");
-      setIsLoading(false);
       window.location.href = "/superadmin/assign-group";
-    } catch (err: unknown) {
+    } catch (err) {
       setError(
         err instanceof Error ? err.message : "그룹 지정에 실패했습니다."
       );
+    } finally {
       setIsLoading(false);
     }
   };
@@ -148,105 +135,147 @@ export default function AssignGroupPage() {
       const newGroup: Group = await res.json();
       setGroups([...groups, newGroup]);
       setNewGroupName("");
+      setError("");
       alert("グループ生成完了");
-      setIsLoading(false);
-    } catch (err: unknown) {
+    } catch (err) {
       setError(
         err instanceof Error ? err.message : "그룹 생성에 실패했습니다."
       );
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <>
-      {isLoading && <Loading />}
-      <div className="p-6 max-w-4xl mx-auto">
-        <h1 className="text-xl mb-4">그룹 지정</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-6">
+      {isLoading && <Loading message="データを読み込んでいます..." />}
+      <div className="max-w-5xl mx-auto">
+        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
+          グループ指定
+        </h1>
+
         {error && (
-          <p className="text-red-500 mb-4" aria-live="polite">
+          <div
+            className="mb-8 p-4 bg-red-100 text-red-700 rounded-lg shadow-md animate-fade-in"
+            aria-live="polite"
+            id="error-message"
+          >
             {error}
-          </p>
+          </div>
         )}
 
         {/* 그룹 생성 폼 */}
-        <div className="mb-6">
-          <h2 className="text-lg mb-2">새 그룹 생성</h2>
+        <div className="bg-white p-6 rounded-2xl shadow-xl mb-12">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            新規グループ作成
+          </h2>
           <div className="flex gap-4">
             <input
               type="text"
-              className="border p-2 w-full border-gray-300"
-              placeholder="그룹 이름을 입력해주세요"
+              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${
+                error.includes("グループ名")
+                  ? "border-red-500"
+                  : "border-gray-300"
+              }`}
+              placeholder="グループ名を入力してください"
               value={newGroupName}
               onChange={(e) => setNewGroupName(e.target.value)}
+              aria-describedby="error-message"
             />
             <button
               onClick={handleCreateGroup}
-              className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              disabled={isLoading}
+              className={`px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 w-40 ${
+                isLoading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              aria-label="グループ作成ボタン"
             >
-              그룹 생성
+              {isLoading ? "作成中..." : "グループ作成"}
             </button>
           </div>
         </div>
 
         {/* 사용자 목록 테이블 */}
-        <table className="w-full border-collapse">
-          <thead>
-            <tr className="bg-gray-200">
-              <th className="border p-2 text-left">이름</th>
-              <th className="border p-2 text-left">역할</th>
-              <th className="border p-2 text-left">현재 그룹</th>
-              <th className="border p-2 text-left">그룹 지정</th>
-              <th className="border p-2 text-left">액션</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id} className="border-b">
-                <td className="border p-2">{user.name}</td>
-                <td className="border p-2">{user.role}</td>
-                <td className="border p-2">
-                  {user.groups.length > 0
-                    ? user.groups[0].group.name
-                    : "미지정"}
-                </td>
-                <td className="border p-2">
-                  <select
-                    className="border p-2 w-full"
-                    value={assignments[user.id] || ""}
-                    onChange={(e) =>
-                      setAssignments({
-                        ...assignments,
-                        [user.id]: e.target.value,
-                      })
-                    }
-                  >
-                    <option value="" disabled>
-                      그룹 선택
-                    </option>
-                    {groups.map((group) => (
-                      <option key={group.id} value={group.id}>
-                        {group.name}
-                      </option>
-                    ))}
-                  </select>
-                </td>
-                <td className="border p-2">
-                  <button
-                    onClick={() => handleAssign(user.id)}
-                    className="bg-green-500 text-white px-4 py-1 rounded hover:bg-green-600"
-                  >
-                    저장
-                  </button>
-                </td>
+        <div className="bg-white rounded-2xl shadow-xl overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="p-4 text-left text-sm font-semibold text-gray-600">
+                  名前
+                </th>
+                <th className="p-4 text-left text-sm font-semibold text-gray-600">
+                  現在のグループ
+                </th>
+                <th className="p-4 text-left text-sm font-semibold text-gray-600">
+                  グループ指定
+                </th>
+                <th className="p-4 text-left text-sm font-semibold text-gray-600">
+                  アクション
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {users.length === 0 && (
-          <p className="mt-4 text-gray-600">사용자가 없습니다.</p>
-        )}
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr
+                  key={user.id}
+                  className="border-b hover:bg-gray-50 transition-all duration-200"
+                >
+                  <td className="p-4 text-sm text-gray-800">{user.name}</td>
+                  <td className="p-4 text-sm text-gray-800">
+                    {user.groups.length > 0
+                      ? user.groups[0].group.name
+                      : "未指定"}
+                  </td>
+                  <td className="p-4">
+                    <select
+                      className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${
+                        assignments[user.id] === "" &&
+                        error.includes("グループを")
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
+                      value={assignments[user.id] || ""}
+                      onChange={(e) =>
+                        setAssignments({
+                          ...assignments,
+                          [user.id]: e.target.value,
+                        })
+                      }
+                      aria-describedby="error-message"
+                    >
+                      <option value="" disabled>
+                        グループを選択
+                      </option>
+                      {groups.map((group) => (
+                        <option key={group.id} value={group.id}>
+                          {group.name}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="p-4">
+                    <button
+                      onClick={() => handleAssign(user.id)}
+                      disabled={isLoading}
+                      className={`px-4 py-2 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg font-semibold hover:from-green-600 hover:to-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-all duration-300 ${
+                        isLoading ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
+                      aria-label={`${user.name}にグループを指定`}
+                    >
+                      {isLoading ? "保存中..." : "保存"}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {users.length === 0 && (
+            <p className="p-6 text-center text-gray-600">
+              ユーザーが見つかりません。
+            </p>
+          )}
+        </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -221,26 +221,34 @@ export default function AllAttendancePage() {
 
   if (message && !children.length) {
     return (
-      <div className="p-6">
-        <p className="text-red-500">{message}</p>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50">
+        <div className="p-6 bg-white rounded-xl shadow-lg">
+          <p className="text-red-600 font-semibold">{message}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-bold mb-4">全学生出席現状</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-6">
+      <header className="bg-white shadow-lg rounded-xl p-6 mb-8 sticky top-0 z-10">
+        <h1 className="text-3xl font-bold text-gray-800">全学生出席状況</h1>
+      </header>
+
       {message && (
-        <div className="mb-4 text-red-500" aria-live="polite">
+        <div
+          className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg shadow-md animate-fade-in"
+          aria-live="polite"
+        >
           {message}
         </div>
       )}
 
-      <div className="mb-4 flex gap-4">
-        <div>
+      <div className="mb-8 flex flex-col sm:flex-row gap-6">
+        <div className="flex-1">
           <label
             htmlFor="startDate"
-            className="block text-sm font-medium text-gray-700 mb-[10px]"
+            className="block text-sm font-medium text-gray-700 mb-2"
           >
             スタート日
           </label>
@@ -252,13 +260,14 @@ export default function AllAttendancePage() {
             placeholderText="시작 날짜 선택"
             locale={ko}
             maxDate={endDate || new Date()}
-            className="border p-2 w-full border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+            aria-label="開始日を選択"
           />
         </div>
-        <div>
+        <div className="flex-1">
           <label
             htmlFor="endDate"
-            className="block text-sm font-medium text-gray-700 mb-[10px]"
+            className="block text-sm font-medium text-gray-700 mb-2"
           >
             エンド日
           </label>
@@ -270,22 +279,23 @@ export default function AllAttendancePage() {
             placeholderText="종료 날짜 선택"
             locale={ko}
             maxDate={new Date()}
-            className="border p-2 w-full border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+            aria-label="終了日を選択"
           />
         </div>
       </div>
 
-      <div className="overflow-x-auto">
+      <div className="bg-white rounded-xl shadow-xl overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-gray-100">
-              <th className="border p-2 text-left sticky left-0 bg-gray-100 min-w-[120px]">
+            <tr className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
+              <th className="border-b border-gray-200 p-4 text-left sticky left-0 bg-blue-600 min-w-[150px] rounded-tl-xl">
                 学生
               </th>
               {dateRange.map((date) => (
                 <th
                   key={date.toISOString()}
-                  className="border p-2 text-center min-w-[80px]"
+                  className="border-b border-gray-200 p-4 text-center min-w-[120px]"
                 >
                   {date.toLocaleDateString("ko-KR", {
                     year: "numeric",
@@ -298,26 +308,33 @@ export default function AllAttendancePage() {
           </thead>
           <tbody>
             {children.map((child) => (
-              <tr key={child.id} className="border-b">
-                <td className="border p-2 sticky left-0 bg-white">
-                  {child.photoPath ? (
-                    <Image
-                      width={500}
-                      height={500}
-                      src={child.photoPath}
-                      alt={`${child.name}の写真`}
-                      className="w-12 h-12 object-cover rounded-full"
-                    />
-                  ) : (
-                    <Image
-                      width={500}
-                      height={500}
-                      src="/default_user.png"
-                      alt="기본 이미지"
-                      className="w-12 h-12 object-cover rounded-full"
-                    />
-                  )}
-                  {child.name}
+              <tr
+                key={child.id}
+                className="border-b hover:bg-gray-50 transition-colors duration-200"
+              >
+                <td className="border-r border-gray-200 p-4 sticky left-0 bg-white">
+                  <div className="flex items-center gap-3">
+                    {child.photoPath ? (
+                      <Image
+                        width={48}
+                        height={48}
+                        src={child.photoPath}
+                        alt={`${child.name}の写真`}
+                        className="w-12 h-12 object-cover rounded-full border-2 border-gray-200"
+                      />
+                    ) : (
+                      <Image
+                        width={48}
+                        height={48}
+                        src="/default_user.png"
+                        alt="기본 이미지"
+                        className="w-12 h-12 object-cover rounded-full border-2 border-gray-200"
+                      />
+                    )}
+                    <span className="font-semibold text-gray-800">
+                      {child.name}
+                    </span>
+                  </div>
                 </td>
                 {dateRange.map((date) => {
                   const record = child.attendance.find(
@@ -332,26 +349,35 @@ export default function AllAttendancePage() {
                   return (
                     <td
                       key={date.toISOString()}
-                      className={`border p-2 text-center ${
-                        record?.checkedById ? "bg-green-300" : ""
+                      className={`border-r border-gray-200 p-4 text-center ${
+                        record?.checkedById ? "bg-green-100" : ""
                       }`}
                     >
                       <div className="flex flex-col items-center justify-center gap-2">
                         <span
-                          className={
-                            record?.checkedById ? "font-bold" : "text-red-500"
-                          }
+                          className={`text-lg ${
+                            record?.checkedById
+                              ? "text-green-600 font-bold"
+                              : record
+                              ? "text-red-600"
+                              : "text-gray-400"
+                          }`}
                         >
-                          {record?.checkedById ? "O" : record ? "X" : "-"}
+                          {record?.checkedById ? "✓" : record ? "✗" : "−"}
                         </span>
                         {canCheckAttendance && (
                           <button
                             onClick={() => onCheck(child.id, date)}
-                            className={`w-35 px-4 py-2 rounded text-white ${
+                            className={`w-full py-2 px-4 rounded-lg font-semibold text-white transition-all duration-300 ${
                               record?.checkedById
-                                ? "bg-red-500 hover:bg-red-600"
-                                : "bg-blue-500 hover:bg-blue-600"
-                            }`}
+                                ? "bg-red-500 hover:bg-red-600 focus:ring-red-500"
+                                : "bg-blue-500 hover:bg-blue-600 focus:ring-blue-500"
+                            } focus:outline-none focus:ring-2 focus:ring-offset-2`}
+                            aria-label={
+                              record?.checkedById
+                                ? "出席キャンセル"
+                                : "出席チェック"
+                            }
                           >
                             {record?.checkedById
                               ? "出席キャンセル"
@@ -368,11 +394,12 @@ export default function AllAttendancePage() {
         </table>
       </div>
 
-      <div className="mt-4">
+      <div className="mt-6">
         <button
           type="button"
           onClick={() => router.push("/dashboard")}
-          className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+          className="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-gray-600 hover:to-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-300"
+          aria-label="ダッシュボードに戻る"
         >
           戻る
         </button>

@@ -36,34 +36,35 @@ export default function AssignChildPage() {
   });
 
   useEffect(() => {
-    fetch("/api/admin/list")
-      .then((res) => res.json())
-      .then((data: Admin[]) => setAdmins(data))
-      .catch((error) => console.error("Error fetching admins:", error));
-
-    fetch("/api/child/list")
-      .then((res) => res.json())
-      .then((data: Child[]) => setChildren(data))
-      .catch((error) => console.error("Error fetching children:", error));
-    setIsLoading(false);
+    Promise.all([
+      fetch("/api/admin/list").then((res) => res.json()),
+      fetch("/api/child/list").then((res) => res.json()),
+    ])
+      .then(([adminData, childData]) => {
+        setAdmins(adminData);
+        setChildren(childData);
+        setIsLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+        setMessage("データの取得中にエラーが発生しました");
+        setIsLoading(false);
+      });
   }, []);
 
-  // 학년 계산 함수
   const getGrade = (birthDay: string): string => {
     const birthYear = new Date(birthDay).getFullYear();
     const currentYear = new Date().getFullYear();
-    const age = currentYear - birthYear; // 한국 나이
+    const age = currentYear - birthYear;
 
-    // 중학교: 13~15세 (1~3학년)
     if (age === 13) return "中学 1年";
     if (age === 14) return "中学 2年";
     if (age === 15) return "中学 3年";
-    // 고등학교: 16~18세 (1~3학년)
     if (age === 16) return "高校 1年";
     if (age === 17) return "高校 2年";
     if (age === 18) return "高校 3年";
 
-    return ""; // 중학교/고등학교 외 나이는 공백
+    return "";
   };
 
   const handleAssign = async () => {
@@ -74,20 +75,10 @@ export default function AssignChildPage() {
     setErrors(newErrors);
 
     if (Object.values(newErrors).some((error) => error)) {
-      setMessage("선생님과 아이를 모두 선택해주세요.");
+      setMessage("選先生と学生を両方選択してください。");
       return;
     }
     setIsLoading(true);
-
-    /** 한번 배정한 아이를 수정하지 못하게 하려면 아래의 코드를 활성화 할것 */
-    // const selectedChildData = children.find(
-    //   (child) => child.id === selectedChild
-    // );
-    // if (selectedChildData?.assignedAdminId) {
-    //   setMessage("이미 배정된 아이입니다. 다른 아이를 선택해주세요.");
-    //   setErrors({ ...errors, child: true });
-    //   return;
-    // }
 
     try {
       const res = await fetch("/api/superadmin/child/assign", {
@@ -105,22 +96,19 @@ export default function AssignChildPage() {
         setSelectedAdmin("");
         setSelectedChild("");
         setErrors({ admin: false, child: false });
-        const updatedChildren = await fetch("/api/child/list").then((res) =>
-          res.json()
-        );
-        setChildren(updatedChildren);
-        const updatedAdmins = await fetch("/api/admin/list").then((res) =>
-          res.json()
-        );
+        const [updatedAdmins, updatedChildren] = await Promise.all([
+          fetch("/api/admin/list").then((res) => res.json()),
+          fetch("/api/child/list").then((res) => res.json()),
+        ]);
         setAdmins(updatedAdmins);
-        setIsLoading(false);
+        setChildren(updatedChildren);
       } else {
         setMessage(data.message || "割り当て失敗");
-        setIsLoading(false);
       }
     } catch (error) {
       console.error("Error assigning child:", error);
       setMessage("割り当てにエラーが発生しました");
+    } finally {
       setIsLoading(false);
     }
   };
@@ -133,188 +121,223 @@ export default function AssignChildPage() {
   };
 
   return (
-    <div className="p-6">
-      {isLoading && <Loading />}
-      <h1 className="text-xl font-bold mb-4">クラス設定</h1>
-      {message && (
-        <div
-          className={`mb-4 ${
-            message.includes("完了") ? "text-green-600" : "text-red-500"
-          }`}
-          aria-live="polite"
-        >
-          {message}
-        </div>
-      )}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-6">
+      {isLoading && <Loading message="データを読み込んでいます..." />}
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
+          クラス設定
+        </h1>
 
-      <div className="mb-12 p-4 border rounded-lg shadow-sm bg-white">
-        <div className="mb-4">
-          <label
-            htmlFor="admin"
-            className="block text-sm font-medium text-gray-700 mb-[10px]"
+        {message && (
+          <div
+            className={`mb-8 p-4 rounded-lg shadow-md animate-fade-in ${
+              message.includes("完了")
+                ? "bg-green-100 text-green-700"
+                : "bg-red-100 text-red-700"
+            }`}
+            aria-live="polite"
+            id="form-message"
           >
-            担当する先生<span className="text-red-500">*</span>
-          </label>
-          <select
-            id="admin"
-            value={selectedAdmin}
-            onChange={(e) => setSelectedAdmin(e.target.value)}
-            className={`border p-2 w-full ${
-              errors.admin ? "border-red-500" : "border-gray-300"
-            } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
-            required
-          >
-            <option value="" disabled>
-              -- 先生選択 --
-            </option>
-            {admins.map((admin) => (
-              <option key={admin.id} value={admin.id}>
-                {admin.name}
-              </option>
-            ))}
-          </select>
-        </div>
+            {message}
+          </div>
+        )}
 
-        <div className="mb-4">
-          <label
-            htmlFor="child"
-            className="block text-sm font-medium text-gray-700 mb-[10px]"
+        <div className="bg-white p-6 rounded-2xl shadow-xl mb-12">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleAssign();
+            }}
+            aria-describedby="form-message"
           >
-            所属する学生<span className="text-red-500">*</span>
-          </label>
-          <select
-            id="child"
-            value={selectedChild}
-            onChange={(e) => setSelectedChild(e.target.value)}
-            className={`border p-2 w-full ${
-              errors.child ? "border-red-500" : "border-gray-300"
-            } focus:ring-2 focus:ring-blue-500 focus:border-blue-500`}
-            required
-          >
-            <option value="" disabled>
-              -- 学生選択 --
-            </option>
-            {children.map((child) => (
-              <option
-                key={child.id}
-                value={child.id}
-                className={
-                  child.assignedAdminId ? "text-gray-400" : "text-gray-800"
-                }
+            <div className="mb-6">
+              <label
+                htmlFor="admin"
+                className="block text-sm font-medium text-gray-600 mb-2"
               >
-                {child.name}{" "}
-                {getGrade(child.birthDay) && `(${getGrade(child.birthDay)})`}
-              </option>
-            ))}
-          </select>
+                担当する先生<span className="text-red-500">*</span>
+              </label>
+              <select
+                id="admin"
+                value={selectedAdmin}
+                onChange={(e) => setSelectedAdmin(e.target.value)}
+                className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${
+                  errors.admin ? "border-red-500" : "border-gray-300"
+                }`}
+                required
+                aria-invalid={errors.admin}
+                aria-describedby="admin-error form-message"
+              >
+                <option value="" disabled>
+                  -- 先生を選択 --
+                </option>
+                {admins.map((admin) => (
+                  <option key={admin.id} value={admin.id}>
+                    {admin.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mb-6">
+              <label
+                htmlFor="child"
+                className="block text-sm font-medium text-gray-600 mb-2"
+              >
+                所属する学生<span className="text-red-500">*</span>
+              </label>
+              <select
+                id="child"
+                value={selectedChild}
+                onChange={(e) => setSelectedChild(e.target.value)}
+                className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${
+                  errors.child ? "border-red-500" : "border-gray-300"
+                }`}
+                required
+                aria-invalid={errors.child}
+                aria-describedby="child-error form-message"
+              >
+                <option value="" disabled>
+                  -- 学生を選択 --
+                </option>
+                {children.map((child) => (
+                  <option
+                    key={child.id}
+                    value={child.id}
+                    className={
+                      child.assignedAdminId ? "text-gray-400" : "text-gray-800"
+                    }
+                  >
+                    {child.name}{" "}
+                    {getGrade(child.birthDay) &&
+                      `(${getGrade(child.birthDay)})`}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className={`w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 ${
+                isLoading ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              aria-label="割り当てボタン"
+            >
+              {isLoading ? "割り当て中..." : "割り当て"}
+            </button>
+          </form>
         </div>
 
-        <button
-          onClick={handleAssign}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        >
-          割り当て
-        </button>
-      </div>
-
-      <div className="mt-6">
-        {/* 아직 배정되지 않은 학생 */}
-        <div className="mt-10">
-          <h2 className="text-lg font-semibold mb-4">未割り当ての学生</h2>
-          {children.filter((c) => !c.assignedAdminId).length > 0 ? (
-            <ul className="space-y-4">
-              {children
-                .filter((c) => !c.assignedAdminId)
-                .map((child) => (
-                  <li
-                    key={child.id}
-                    className="flex items-center space-x-4 bg-gray-100 p-3 rounded-lg"
-                  >
-                    {child.photoPath ? (
-                      <Image
-                        width={500}
-                        height={500}
-                        src={child.photoPath}
-                        alt={`${child.name}の写真`}
-                        className="w-12 h-12 object-cover rounded-full"
-                      />
-                    ) : (
-                      <Image
-                        width={500}
-                        height={500}
-                        src="/default_user.png"
-                        alt="기본 이미지"
-                        className="w-12 h-12 object-cover rounded-full"
-                      />
-                    )}
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">
-                        {child.name}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        生年月日: {formatBirthDay(child.birthDay)}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {getGrade(child.birthDay) || "不明"}
-                      </p>
-                    </div>
-                  </li>
-                ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-gray-500">
-              現在未割り当ての学生はいません。
-            </p>
-          )}
-        </div>
-
-        {admins.map((admin) => (
-          <div key={admin.id} className="mt-8 mb-8">
-            <h3 className="text-md font-medium text-gray-700 mb-2">
-              {admin.name} 先生
-            </h3>
-            {admin.assignedChildren.length > 0 ? (
-              <ul className="space-y-4">
-                {admin.assignedChildren.map((child) => (
-                  <li
-                    key={child.id}
-                    className="flex items-center space-x-4 bg-gray-50 p-3 rounded-lg"
-                  >
-                    {child.photoPath ? (
-                      <Image
-                        width={500}
-                        height={500}
-                        src={child.photoPath}
-                        alt={`${child.name}の写真`}
-                        className="w-12 h-12 object-cover rounded-full"
-                      />
-                    ) : (
-                      <Image
-                        width={500}
-                        height={500}
-                        src="/default_user.png"
-                        alt="기본 이미지"
-                        className="w-12 h-12 object-cover rounded-full"
-                      />
-                    )}
-                    <div>
-                      <p className="text-sm font-medium text-gray-800">
-                        {child.name}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        生年月日: {formatBirthDay(child.birthDay)}
-                      </p>
-                    </div>
-                  </li>
-                ))}
+        <div className="space-y-12">
+          {/* 未割り当ての学生 */}
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">
+              未割り当ての学生
+            </h2>
+            {children.filter((c) => !c.assignedAdminId).length > 0 ? (
+              <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {children
+                  .filter((c) => !c.assignedAdminId)
+                  .map((child) => (
+                    <li
+                      key={child.id}
+                      className="flex items-center space-x-4 bg-white p-4 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+                    >
+                      {child.photoPath ? (
+                        <Image
+                          width={48}
+                          height={48}
+                          src={child.photoPath}
+                          alt={`${child.name}の写真`}
+                          className="w-12 h-12 object-cover rounded-full border-2 border-gray-200"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <Image
+                          width={48}
+                          height={48}
+                          src="/default_user.png"
+                          alt="基本画像"
+                          className="w-12 h-12 object-cover rounded-full border-2 border-gray-200"
+                          loading="lazy"
+                        />
+                      )}
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">
+                          {child.name}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          生年月日: {formatBirthDay(child.birthDay)}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {getGrade(child.birthDay) || "不明"}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
               </ul>
             ) : (
-              <p className="ml-4 text-sm text-gray-500">
-                割り当てられた学生はいません
+              <p className="text-sm text-gray-500">
+                現在未割り当ての学生はいません。
               </p>
             )}
           </div>
-        ))}
+
+          {/* 先生ごとの割り当て学生 */}
+          {admins.map((admin) => (
+            <div key={admin.id}>
+              <h3 className="text-xl font-semibold text-gray-800 mb-4">
+                {admin.name} 先生
+              </h3>
+              {admin.assignedChildren.length > 0 ? (
+                <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {admin.assignedChildren.map((child) => (
+                    <li
+                      key={child.id}
+                      className="flex items-center space-x-4 bg-white p-4 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+                    >
+                      {child.photoPath ? (
+                        <Image
+                          width={48}
+                          height={48}
+                          src={child.photoPath}
+                          alt={`${child.name}の写真`}
+                          className="w-12 h-12 object-cover rounded-full border-2 border-gray-200"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <Image
+                          width={48}
+                          height={48}
+                          src="/default_user.png"
+                          alt="基本画像"
+                          className="w-12 h-12 object-cover rounded-full border-2 border-gray-200"
+                          loading="lazy"
+                        />
+                      )}
+                      <div>
+                        <p className="text-sm font-medium text-gray-800">
+                          {child.name}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          生年月日: {formatBirthDay(child.birthDay)}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {getGrade(child.birthDay) || "不明"}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm text-gray-500">
+                  割り当てられた学生はいません
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
