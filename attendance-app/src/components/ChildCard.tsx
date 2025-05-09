@@ -68,7 +68,7 @@ export const ChildCard = ({
 
   return (
     <div
-      className={`p-6 bg-white rounded-xl shadow-md border border-gray-100 transform transition-all hover:scale-105 hover:shadow-xl ${
+      className={`p-3 bg-white rounded-xl shadow-md border border-gray-100 transform transition-all hover:scale-105 hover:shadow-xl ${
         checked ? "border-green-400 border-2" : ""
       }`}
     >

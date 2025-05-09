@@ -230,9 +230,9 @@ export default function AllAttendancePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-6">
-      <header className="bg-white shadow-lg rounded-xl p-6 mb-8 sticky top-0 z-10">
-        <h1 className="text-3xl font-bold text-gray-800">全学生出席状況</h1>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-3">
+      <header className="bg-white shadow-lg rounded-xl p-3 mb-8 sticky top-0 z-10">
+        <h1 className="text-xl font-bold text-gray-800">全学生出席状況</h1>
       </header>
 
       {message && (
@@ -288,14 +288,14 @@ export default function AllAttendancePage() {
       <div className="bg-white rounded-xl shadow-xl overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
-            <tr className="bg-gradient-to-r from-blue-500 to-blue-600 text-white">
-              <th className="border-b border-gray-200 p-4 text-left sticky left-0 bg-blue-600 min-w-[150px] rounded-tl-xl">
+            <tr className="bg-blue-400">
+              <th className="border-b border-gray-200 p-2 text-left sticky left-0 bg-blue-400 min-w-[150px] rounded-tl-xl">
                 学生
               </th>
               {dateRange.map((date) => (
                 <th
                   key={date.toISOString()}
-                  className="border-b border-gray-200 p-4 text-center min-w-[120px]"
+                  className="border-b border-gray-200 p-2 text-center min-w-[120px]"
                 >
                   {date.toLocaleDateString("ko-KR", {
                     year: "numeric",
@@ -312,7 +312,7 @@ export default function AllAttendancePage() {
                 key={child.id}
                 className="border-b hover:bg-gray-50 transition-colors duration-200"
               >
-                <td className="border-r border-gray-200 p-4 sticky left-0 bg-white">
+                <td className="border-r border-gray-200 p-2 sticky left-0 bg-white">
                   <div className="flex items-center gap-3">
                     {child.photoPath ? (
                       <Image
@@ -349,7 +349,7 @@ export default function AllAttendancePage() {
                   return (
                     <td
                       key={date.toISOString()}
-                      className={`border-r border-gray-200 p-4 text-center ${
+                      className={`border-r border-gray-200 p-2 text-center ${
                         record?.checkedById ? "bg-green-100" : ""
                       }`}
                     >
@@ -374,14 +374,10 @@ export default function AllAttendancePage() {
                                 : "bg-blue-500 hover:bg-blue-600 focus:ring-blue-500"
                             } focus:outline-none focus:ring-2 focus:ring-offset-2`}
                             aria-label={
-                              record?.checkedById
-                                ? "出席キャンセル"
-                                : "出席チェック"
+                              record?.checkedById ? "キャンセル" : "出席"
                             }
                           >
-                            {record?.checkedById
-                              ? "出席キャンセル"
-                              : "出席チェック"}
+                            {record?.checkedById ? "キャンセル" : "出席"}
                           </button>
                         )}
                       </div>

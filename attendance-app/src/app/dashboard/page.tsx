@@ -147,7 +147,7 @@ export default function Dashboard() {
     return (
       <>
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-semibold text-gray-800">担当学生</h2>
+          <h2 className="text-xl font-semibold text-gray-800">担当学生</h2>
         </div>
         {assigned.length === 0 ? (
           <div className="text-gray-500 text-center py-4">
@@ -172,11 +172,11 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-3">
       {isLoading && <Loading />}
-      <header className="bg-white shadow-lg rounded-xl p-6 mb-8 top-0 z-10">
+      <header className="bg-white shadow-lg rounded-xl p-2 pr-4 pl-4 mb-8 top-0 z-10">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-800 w-200">
+          <h1 className="text-xl font-bold text-gray-800 w-200">
             出席チェック
           </h1>
           <div className="flex gap-4">
