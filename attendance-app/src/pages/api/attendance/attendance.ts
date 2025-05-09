@@ -67,6 +67,7 @@ export default async function handler(
         id: true,
         name: true,
         photoPath: true,
+        assignedAdminId: true,
         attendance: {
           select: {
             id: true,

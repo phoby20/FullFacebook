@@ -23,6 +23,7 @@ type Child = {
   id: string;
   name: string;
   photoPath: string;
+  assignedAdminId: string | null;
   attendance: Attendance[];
 };
 
@@ -35,6 +36,10 @@ export default function AllAttendancePage() {
   const [endDate, setEndDate] = useState<Date | null>(new Date());
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState<string>("");
+  const [userRole, setUserRole] = useState<
+    "superAdmin" | "admin" | "child" | null
+  >(null);
 
   const onCheck = async (childId: string, date: Date) => {
     setIsLoading(true);
@@ -55,7 +60,7 @@ export default function AllAttendancePage() {
         date: new Date(date.getTime() - date.getTimezoneOffset() * 60000)
           .toISOString()
           .split("T")[0],
-        action: checked ? "uncheck" : "check", // 수정
+        action: checked ? "uncheck" : "check",
       };
 
       const res = await fetch("/api/attendance/toggle", {
@@ -139,8 +144,11 @@ export default function AllAttendancePage() {
   const refreshAttendanceData = async () => {
     setIsLoading(true);
     try {
+      const start = startDate ? startDate.toISOString().split("T")[0] : "";
+      const end = endDate ? endDate.toISOString().split("T")[0] : "";
+
       const res = await fetch(
-        `/api/attendance/attendance?startDate=${startDate?.toISOString()}&endDate=${endDate?.toISOString()}`,
+        `/api/attendance/attendance?startDate=${start}&endDate=${end}`,
         {
           headers: { Authorization: `Bearer ${getToken()}` },
           cache: "no-store",
@@ -170,6 +178,8 @@ export default function AllAttendancePage() {
     }
     try {
       const decoded: DecodedToken = jwtDecode(token);
+      setUserId(decoded.userId);
+      setUserRole(decoded.role);
       if (decoded.role === "child") {
         setMessage("출석 현황을 볼 권한이 없습니다.");
         setIsLoading(false);
@@ -315,6 +325,10 @@ export default function AllAttendancePage() {
                       new Date(a.date).toISOString().split("T")[0] ===
                       date.toISOString().split("T")[0]
                   );
+                  const canCheckAttendance =
+                    userRole === "superAdmin" ||
+                    userId === child.assignedAdminId;
+
                   return (
                     <td
                       key={date.toISOString()}
@@ -330,18 +344,20 @@ export default function AllAttendancePage() {
                         >
                           {record?.checkedById ? "O" : record ? "X" : "-"}
                         </span>
-                        <button
-                          onClick={() => onCheck(child.id, date)}
-                          className={`w-35 px-4 py-2 rounded text-white ${
-                            record?.checkedById
-                              ? "bg-red-500 hover:bg-red-600"
-                              : "bg-blue-500 hover:bg-blue-600"
-                          }`}
-                        >
-                          {record?.checkedById
-                            ? "出席キャンセル"
-                            : "出席チェック"}
-                        </button>
+                        {canCheckAttendance && (
+                          <button
+                            onClick={() => onCheck(child.id, date)}
+                            className={`w-35 px-4 py-2 rounded text-white ${
+                              record?.checkedById
+                                ? "bg-red-500 hover:bg-red-600"
+                                : "bg-blue-500 hover:bg-blue-600"
+                            }`}
+                          >
+                            {record?.checkedById
+                              ? "出席キャンセル"
+                              : "出席チェック"}
+                          </button>
+                        )}
                       </div>
                     </td>
                   );
