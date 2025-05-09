@@ -6,6 +6,7 @@ import { jwtDecode } from "jwt-decode";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { ko } from "date-fns/locale";
+import Loading from "@/components/Loading";
 
 type DecodedToken = {
   userId: string;
@@ -101,7 +102,7 @@ export default function AllAttendancePage() {
   const dateRange = getDateRange();
 
   if (isLoading) {
-    return <div className="p-6">로딩 중...</div>;
+    return <Loading />;
   }
 
   if (message && !children.length) {
