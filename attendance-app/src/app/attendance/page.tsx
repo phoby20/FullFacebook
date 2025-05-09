@@ -231,9 +231,7 @@ export default function AllAttendancePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-3">
-      <header className="bg-white shadow-lg rounded-xl p-3 mb-8 sticky top-0 z-10">
-        <h1 className="text-xl font-bold text-gray-800">全学生出席状況</h1>
-      </header>
+      <h1 className="text-xl font-bold text-gray-800 mb-8">全学生出席状況</h1>
 
       {message && (
         <div
@@ -368,11 +366,11 @@ export default function AllAttendancePage() {
                         {canCheckAttendance && (
                           <button
                             onClick={() => onCheck(child.id, date)}
-                            className={`w-full py-2 px-4 rounded-lg font-semibold text-white transition-all duration-300 ${
+                            className={`w-full py-2 px-3 rounded-lg font-semibold transition-all duration-300 border-2 ${
                               record?.checkedById
-                                ? "bg-red-500 hover:bg-red-600 focus:ring-red-500"
-                                : "bg-blue-500 hover:bg-blue-600 focus:ring-blue-500"
-                            } focus:outline-none focus:ring-2 focus:ring-offset-2`}
+                                ? "border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 focus:ring-red-500"
+                                : "border-blue-500 text-blue-500 hover:border-blue-600 hover:text-blue-600 focus:ring-blue-500"
+                            } bg-transparent focus:outline-none focus:ring-2 focus:ring-offset-2`}
                             aria-label={
                               record?.checkedById ? "キャンセル" : "出席"
                             }

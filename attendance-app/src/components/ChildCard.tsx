@@ -72,11 +72,11 @@ export const ChildCard = ({
         checked ? "border-green-400 border-2" : ""
       }`}
     >
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex justify-between items-center mb-2">
         {checked ? (
           <span className="text-green-500 text-2xl font-bold">✓</span>
         ) : (
-          <span className="text-gray-300 text-2xl">○</span>
+          <span className="text-gray-300 text-2xl">●</span>
         )}
         <div className="relative" ref={dropdownRef}>
           {onCheck && (
@@ -87,7 +87,7 @@ export const ChildCard = ({
               aria-expanded={isDropdownOpen}
               aria-label="オプションを開く"
             >
-              メニュー
+              more
             </button>
           )}
           {isDropdownOpen && onEdit && (
@@ -112,26 +112,26 @@ export const ChildCard = ({
           height={80}
           src={child.photoPath || "/default_user.png"}
           alt={child.name}
-          className="w-25 h-25 object-cover rounded-full border-2 border-gray-200"
+          className="w-24 h-24 object-cover rounded-full border-2 border-gray-200"
           priority={highlight}
           sizes="80px"
         />
         <div className="flex-1">
           <div className="mb-4">
-            <p className="text-lg font-semibold text-gray-800">{child.name}</p>
+            <p className="text-l text-gray-800">{child.name}</p>
             <p className="text-sm text-gray-500">{getGrade(child.birthDay)}</p>
           </div>
           {onCheck && (
             <button
               onClick={() => onCheck(child.id)}
-              className={`w-full py-2 px-4 rounded-lg font-semibold text-white transition-all duration-300 ${
+              className={`w-full py-3 px-3 rounded-lg font-semibold transition-all duration-300 border-2 ${
                 checked
-                  ? "bg-red-500 hover:bg-red-600 focus:ring-red-500"
-                  : "bg-blue-500 hover:bg-blue-600 focus:ring-blue-500"
-              } focus:outline-none focus:ring-2 focus:ring-offset-2`}
-              aria-label={checked ? "出席キャンセル" : "出席チェック"}
+                  ? "border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 focus:ring-red-500"
+                  : "border-blue-500 text-blue-500 hover:border-blue-600 hover:text-blue-600 focus:ring-blue-500"
+              } bg-transparent focus:outline-none focus:ring-2 focus:ring-offset-2`}
+              aria-label={checked ? "キャンセル" : "出席"}
             >
-              {checked ? "出席キャンセル" : "出席チェック"}
+              {checked ? "キャンセル" : "出席"}
             </button>
           )}
         </div>
