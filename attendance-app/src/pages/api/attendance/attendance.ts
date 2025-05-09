@@ -32,8 +32,25 @@ export default async function handler(
   if (!token) return res.status(401).json({ message: "Unauthorized" });
 
   const { startDate, endDate } = req.query;
-  const start = startDate ? new Date(startDate as string) : undefined;
-  const end = endDate ? new Date(endDate as string) : undefined;
+  // startDate와 endDate 필수 확인
+  if (!startDate || !endDate) {
+    return res
+      .status(400)
+      .json({ message: "startDate와 endDate는 필수입니다" });
+  }
+
+  // 문자열로 받은 날짜를 Date 객체로 변환
+  const start = new Date(startDate as string);
+  const end = new Date(endDate as string);
+  console.log("Received dates:", { start, end });
+
+  // start를 00:00:00.000Z로, end를 23:59:59.999Z로 설정 (UTC 기준)
+  const startAdjusted = new Date(
+    start.toISOString().split("T")[0] + "T00:00:00.000Z"
+  );
+  const endAdjusted = new Date(
+    end.toISOString().split("T")[0] + "T23:59:59.999Z"
+  );
 
   try {
     const decoded: DecodedToken = jwtDecode(token);
@@ -58,8 +75,8 @@ export default async function handler(
           },
           where: {
             date: {
-              gte: start,
-              lte: end,
+              gte: startAdjusted,
+              lte: endAdjusted,
             },
           },
           orderBy: { date: "desc" },
