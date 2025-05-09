@@ -15,7 +15,9 @@ export default async function handler(
   const { email, password } = req.body;
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user || !bcrypt.compareSync(password, user.password)) {
-    return res.status(401).json({ message: "Invalid credentials" });
+    return res
+      .status(401)
+      .json({ message: "ログイン情報を再度確認してください" });
   }
 
   const token = jwt.sign(
