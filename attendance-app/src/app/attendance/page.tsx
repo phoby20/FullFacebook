@@ -30,16 +30,31 @@ type Child = {
 export default function AllAttendancePage() {
   const router = useRouter();
   const [children, setChildren] = useState<Child[]>([]);
-  const [startDate, setStartDate] = useState<Date | null>(
-    new Date(new Date().setDate(new Date().getDate() - 1))
-  );
-  const [endDate, setEndDate] = useState<Date | null>(new Date());
+  const [startDate, setStartDate] = useState<Date | null>(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0); // KST 00:00
+    date.setDate(date.getDate() - 1); // 하루 전
+    return date;
+  });
+  const [endDate, setEndDate] = useState<Date | null>(() => {
+    const date = new Date();
+    date.setHours(0, 0, 0, 0); // KST 00:00
+    return date;
+  });
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string>("");
   const [userRole, setUserRole] = useState<
     "superAdmin" | "admin" | "child" | null
   >(null);
+
+  // 로컬 날짜 문자열 생성 (KST 기준 YYYY-MM-DD)
+  const getLocalDateString = (date: Date) => {
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(date.getDate()).padStart(2, "0")}`;
+  };
 
   const onCheck = async (childId: string, date: Date) => {
     setIsLoading(true);
@@ -52,14 +67,12 @@ export default function AllAttendancePage() {
       const record = child.attendance.find(
         (a) =>
           new Date(a.date).toISOString().split("T")[0] ===
-          date.toISOString().split("T")[0]
+          getLocalDateString(date) // 로컬 날짜로 비교
       );
       const checked = !!record?.checkedById;
       const requestBody = {
         childId,
-        date: new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-          .toISOString()
-          .split("T")[0],
+        date: getLocalDateString(date), // 로컬 날짜 전송
         action: checked ? "uncheck" : "check",
       };
 
@@ -85,7 +98,7 @@ export default function AllAttendancePage() {
                   attendance: child.attendance.filter(
                     (a) =>
                       new Date(a.date).toISOString().split("T")[0] !==
-                      date.toISOString().split("T")[0]
+                      getLocalDateString(date)
                   ),
                 };
               }
@@ -110,7 +123,7 @@ export default function AllAttendancePage() {
                 attendance: child.attendance.filter(
                   (a) =>
                     new Date(a.date).toISOString().split("T")[0] !==
-                    date.toISOString().split("T")[0]
+                    getLocalDateString(date)
                 ),
               };
             } else {
@@ -144,8 +157,9 @@ export default function AllAttendancePage() {
   const refreshAttendanceData = async () => {
     setIsLoading(true);
     try {
-      const start = startDate ? startDate.toISOString().split("T")[0] : "";
-      const end = endDate ? endDate.toISOString().split("T")[0] : "";
+      const start = startDate ? getLocalDateString(startDate) : "";
+      const end = endDate ? getLocalDateString(endDate) : "";
+      console.log("Fetching attendance data:", { start, end });
 
       const res = await fetch(
         `/api/attendance/attendance?startDate=${start}&endDate=${end}`,
@@ -206,20 +220,22 @@ export default function AllAttendancePage() {
     if (!startDate || !endDate) return [];
     const dates = [];
     const currentDate = new Date(startDate);
-    while (currentDate <= endDate) {
+    currentDate.setHours(0, 0, 0, 0); // 시작 날짜 시간 초기화
+    const end = new Date(endDate);
+    end.setHours(0, 0, 0, 0); // 종료 날짜 시간 초기화
+    while (currentDate <= end) {
       dates.push(new Date(currentDate));
       currentDate.setDate(currentDate.getDate() + 1);
     }
     return dates;
   };
 
-  // 날짜별 출석 학생 수 계산
   const getAttendanceCount = (date: Date) => {
     return children.reduce((count, child) => {
       const hasAttendance = child.attendance.some(
         (a) =>
           new Date(a.date).toISOString().split("T")[0] ===
-            date.toISOString().split("T")[0] && a.checkedById
+            getLocalDateString(date) && a.checkedById
       );
       return count + (hasAttendance ? 1 : 0);
     }, 0);
@@ -265,7 +281,14 @@ export default function AllAttendancePage() {
           <DatePicker
             id="startDate"
             selected={startDate}
-            onChange={(date: Date | null) => setStartDate(date)}
+            onChange={(date: Date | null) => {
+              if (date) {
+                date.setHours(0, 0, 0, 0); // KST 00:00
+                setStartDate(date);
+              } else {
+                setStartDate(null);
+              }
+            }}
             dateFormat="yyyy-MM-dd"
             placeholderText="시작 날짜 선택"
             locale={ko}
@@ -284,7 +307,14 @@ export default function AllAttendancePage() {
           <DatePicker
             id="endDate"
             selected={endDate}
-            onChange={(date: Date | null) => setEndDate(date)}
+            onChange={(date: Date | null) => {
+              if (date) {
+                date.setHours(0, 0, 0, 0); // KST 00:00
+                setEndDate(date);
+              } else {
+                setEndDate(null);
+              }
+            }}
             dateFormat="yyyy-MM-dd"
             placeholderText="종료 날짜 선택"
             locale={ko}
@@ -361,7 +391,7 @@ export default function AllAttendancePage() {
                   const record = child.attendance.find(
                     (a) =>
                       new Date(a.date).toISOString().split("T")[0] ===
-                      date.toISOString().split("T")[0]
+                      getLocalDateString(date)
                   );
                   const canCheckAttendance =
                     userRole === "superAdmin" ||
