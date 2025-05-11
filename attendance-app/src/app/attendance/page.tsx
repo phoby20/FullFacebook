@@ -36,110 +36,110 @@ export default function AllAttendancePage() {
   const [endDate, setEndDate] = useState<Date | null>(new Date());
   const [message, setMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  // const [userId, setUserId] = useState<string>("");
-  // const [userRole, setUserRole] = useState<
-  //   "superAdmin" | "admin" | "child" | null
-  // >(null);
+  const [userId, setUserId] = useState<string>("");
+  const [userRole, setUserRole] = useState<
+    "superAdmin" | "admin" | "child" | null
+  >(null);
 
-  // const onCheck = async (childId: string, date: Date) => {
-  //   setIsLoading(true);
-  //   try {
-  //     const child = children.find((c) => c.id === childId);
-  //     if (!child) {
-  //       setMessage("학생을 찾을 수 없습니다.");
-  //       return;
-  //     }
-  //     const record = child.attendance.find(
-  //       (a) =>
-  //         new Date(a.date).toISOString().split("T")[0] ===
-  //         date.toISOString().split("T")[0]
-  //     );
-  //     const checked = !!record?.checkedById;
-  //     const requestBody = {
-  //       childId,
-  //       date: new Date(date.getTime() - date.getTimezoneOffset() * 60000)
-  //         .toISOString()
-  //         .split("T")[0],
-  //       action: checked ? "uncheck" : "check",
-  //     };
+  const onCheck = async (childId: string, date: Date) => {
+    setIsLoading(true);
+    try {
+      const child = children.find((c) => c.id === childId);
+      if (!child) {
+        setMessage("학생을 찾을 수 없습니다.");
+        return;
+      }
+      const record = child.attendance.find(
+        (a) =>
+          new Date(a.date).toISOString().split("T")[0] ===
+          date.toISOString().split("T")[0]
+      );
+      const checked = !!record?.checkedById;
+      const requestBody = {
+        childId,
+        date: new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+          .toISOString()
+          .split("T")[0],
+        action: checked ? "uncheck" : "check",
+      };
 
-  //     const res = await fetch("/api/attendance/toggle", {
-  //       method: "POST",
-  //       headers: {
-  //         "Content-Type": "application/json",
-  //         Authorization: `Bearer ${getToken()}`,
-  //       },
-  //       credentials: "include",
-  //       body: JSON.stringify(requestBody),
-  //     });
+      const res = await fetch("/api/attendance/toggle", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
+        credentials: "include",
+        body: JSON.stringify(requestBody),
+      });
 
-  //     const data = await res.json();
+      const data = await res.json();
 
-  //     if (!res.ok) {
-  //       if (res.status === 404 && checked) {
-  //         setChildren((prevChildren) =>
-  //           prevChildren.map((child) => {
-  //             if (child.id === childId) {
-  //               return {
-  //                 ...child,
-  //                 attendance: child.attendance.filter(
-  //                   (a) =>
-  //                     new Date(a.date).toISOString().split("T")[0] !==
-  //                     date.toISOString().split("T")[0]
-  //                 ),
-  //               };
-  //             }
-  //             return child;
-  //           })
-  //         );
-  //         setMessage("서버에 출석 기록이 없어 로컬 상태를 업데이트했습니다.");
-  //         await refreshAttendanceData();
-  //         return;
-  //       }
-  //       console.error("API error:", res.status, data.message);
-  //       throw new Error(`API request failed with status ${res.status}`);
-  //     }
+      if (!res.ok) {
+        if (res.status === 404 && checked) {
+          setChildren((prevChildren) =>
+            prevChildren.map((child) => {
+              if (child.id === childId) {
+                return {
+                  ...child,
+                  attendance: child.attendance.filter(
+                    (a) =>
+                      new Date(a.date).toISOString().split("T")[0] !==
+                      date.toISOString().split("T")[0]
+                  ),
+                };
+              }
+              return child;
+            })
+          );
+          setMessage("서버에 출석 기록이 없어 로컬 상태를 업데이트했습니다.");
+          await refreshAttendanceData();
+          return;
+        }
+        console.error("API error:", res.status, data.message);
+        throw new Error(`API request failed with status ${res.status}`);
+      }
 
-  //     setMessage(data.message || "처리 완료!");
-  //     setChildren((prevChildren) => {
-  //       const newChildren = prevChildren.map((child) => {
-  //         if (child.id === childId) {
-  //           if (checked) {
-  //             return {
-  //               ...child,
-  //               attendance: child.attendance.filter(
-  //                 (a) =>
-  //                   new Date(a.date).toISOString().split("T")[0] !==
-  //                   date.toISOString().split("T")[0]
-  //               ),
-  //             };
-  //           } else {
-  //             return {
-  //               ...child,
-  //               attendance: [
-  //                 ...child.attendance,
-  //                 {
-  //                   id: data.attendance?.id || `temp-${Date.now()}`,
-  //                   date: data.attendance?.date || date.toISOString(),
-  //                   checkedById: data.attendance?.checkedById || "admin",
-  //                 },
-  //               ],
-  //             };
-  //           }
-  //         }
-  //         return child;
-  //       });
-  //       return newChildren;
-  //     });
+      setMessage(data.message || "처리 완료!");
+      setChildren((prevChildren) => {
+        const newChildren = prevChildren.map((child) => {
+          if (child.id === childId) {
+            if (checked) {
+              return {
+                ...child,
+                attendance: child.attendance.filter(
+                  (a) =>
+                    new Date(a.date).toISOString().split("T")[0] !==
+                    date.toISOString().split("T")[0]
+                ),
+              };
+            } else {
+              return {
+                ...child,
+                attendance: [
+                  ...child.attendance,
+                  {
+                    id: data.attendance?.id || `temp-${Date.now()}`,
+                    date: data.attendance?.date || date.toISOString(),
+                    checkedById: data.attendance?.checkedById || "admin",
+                  },
+                ],
+              };
+            }
+          }
+          return child;
+        });
+        return newChildren;
+      });
 
-  //     await refreshAttendanceData();
-  //   } catch (error) {
-  //     console.error("Error updating attendance:", error);
-  //     setMessage("출석 상태를 업데이트하지 못했습니다.");
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
+      await refreshAttendanceData();
+    } catch (error) {
+      console.error("Error updating attendance:", error);
+      setMessage("출석 상태를 업데이트하지 못했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const refreshAttendanceData = async () => {
     setIsLoading(true);
@@ -178,8 +178,8 @@ export default function AllAttendancePage() {
     }
     try {
       const decoded: DecodedToken = jwtDecode(token);
-      // setUserId(decoded.userId);
-      // setUserRole(decoded.role);
+      setUserId(decoded.userId);
+      setUserRole(decoded.role);
       if (decoded.role === "child") {
         setMessage("출석 현황을 볼 권한이 없습니다.");
         setIsLoading(false);
@@ -293,13 +293,17 @@ export default function AllAttendancePage() {
               {dateRange.map((date) => (
                 <th
                   key={date.toISOString()}
-                  className="border-b border-gray-200 p-2 text-center min-w-[120px]"
+                  className="border-b border-gray-200 p-2 text-center min-w-[106px]"
                 >
-                  {date.toLocaleDateString("ko-KR", {
-                    year: "numeric",
-                    month: "numeric",
-                    day: "numeric",
-                  })}
+                  {date
+                    .toLocaleDateString("ko-KR", {
+                      year: "numeric",
+                      month: "numeric",
+                      day: "numeric",
+                    })
+                    .replace(/\./g, "/")
+                    .replace(/\s/g, "")
+                    .slice(0, -1)}
                 </th>
               ))}
             </tr>
@@ -311,7 +315,7 @@ export default function AllAttendancePage() {
                 className="border-b hover:bg-gray-50 transition-colors duration-200"
               >
                 <td className="border-r border-gray-200 p-2 sticky left-0 bg-white">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1 flex-col sm:flex-row">
                     {child.photoPath ? (
                       <Image
                         width={48}
@@ -329,7 +333,7 @@ export default function AllAttendancePage() {
                         className="w-12 h-12 object-cover rounded-full border-2 border-gray-200"
                       />
                     )}
-                    <span className="font-semibold text-gray-800">
+                    <span className="font-semibold text-gray-800 text-xs">
                       {child.name}
                     </span>
                   </div>
@@ -340,9 +344,9 @@ export default function AllAttendancePage() {
                       new Date(a.date).toISOString().split("T")[0] ===
                       date.toISOString().split("T")[0]
                   );
-                  // const canCheckAttendance =
-                  //   userRole === "superAdmin" ||
-                  //   userId === child.assignedAdminId;
+                  const canCheckAttendance =
+                    userRole === "superAdmin" ||
+                    userId === child.assignedAdminId;
 
                   return (
                     <td
@@ -363,10 +367,10 @@ export default function AllAttendancePage() {
                         >
                           {record?.checkedById ? "✓" : record ? "✗" : "−"}
                         </span>
-                        {/* {canCheckAttendance && (
+                        {canCheckAttendance && (
                           <button
                             onClick={() => onCheck(child.id, date)}
-                            className={`w-full py-2 px-3 rounded-lg font-semibold transition-all duration-300 border-2 ${
+                            className={`w-full py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-300 border-2 ${
                               record?.checkedById
                                 ? "border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 focus:ring-red-500"
                                 : "border-blue-500 text-blue-500 hover:border-blue-600 hover:text-blue-600 focus:ring-blue-500"
@@ -377,7 +381,7 @@ export default function AllAttendancePage() {
                           >
                             {record?.checkedById ? "キャンセル" : "出席"}
                           </button>
-                        )} */}
+                        )}
                       </div>
                     </td>
                   );
