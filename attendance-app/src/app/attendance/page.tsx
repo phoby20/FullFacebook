@@ -213,6 +213,18 @@ export default function AllAttendancePage() {
     return dates;
   };
 
+  // 날짜별 출석 학생 수 계산
+  const getAttendanceCount = (date: Date) => {
+    return children.reduce((count, child) => {
+      const hasAttendance = child.attendance.some(
+        (a) =>
+          new Date(a.date).toISOString().split("T")[0] ===
+            date.toISOString().split("T")[0] && a.checkedById
+      );
+      return count + (hasAttendance ? 1 : 0);
+    }, 0);
+  };
+
   const dateRange = getDateRange();
 
   if (isLoading) {
@@ -295,15 +307,22 @@ export default function AllAttendancePage() {
                   key={date.toISOString()}
                   className="border-b border-gray-200 p-2 text-center min-w-[106px]"
                 >
-                  {date
-                    .toLocaleDateString("ko-KR", {
-                      year: "numeric",
-                      month: "numeric",
-                      day: "numeric",
-                    })
-                    .replace(/\./g, "/")
-                    .replace(/\s/g, "")
-                    .slice(0, -1)}
+                  <div className="flex flex-col items-center">
+                    <span>
+                      {date
+                        .toLocaleDateString("ko-KR", {
+                          year: "numeric",
+                          month: "numeric",
+                          day: "numeric",
+                        })
+                        .replace(/\./g, "/")
+                        .replace(/\s/g, "")
+                        .slice(0, -1)}
+                    </span>
+                    <span className="text-sm text-gray-100 mt-1">
+                      ({getAttendanceCount(date)}人)
+                    </span>
+                  </div>
                 </th>
               ))}
             </tr>
