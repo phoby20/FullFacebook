@@ -4,9 +4,12 @@ import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import { ChildrenSection } from "@/components/ChildrenSection";
 import Loading from "@/components/Loading";
+import Image from "next/image";
 
 type DecodedToken = {
   userId: string;
+  photoPath: string;
+  userName: string;
   role: "master" | "superAdmin" | "admin" | "child";
   exp: number;
   iat: number;
@@ -34,6 +37,8 @@ type User = {
 export default function Dashboard() {
   const [role, setRole] = useState("");
   const [userId, setUserId] = useState("");
+  const [userPhoto, setUserPhoto] = useState("");
+  const [userName, setUserName] = useState("");
   const [children, setChildren] = useState<Child[]>([]);
   const [admins, setAdmins] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -55,6 +60,8 @@ export default function Dashboard() {
       const decoded: DecodedToken = jwtDecode(token);
       setRole(decoded.role);
       setUserId(decoded.userId);
+      setUserName(decoded.userName);
+      setUserPhoto(decoded.photoPath || "");
       setIsLoading(false);
     } catch {
       router.push("/login");
@@ -146,8 +153,18 @@ export default function Dashboard() {
 
     return (
       <>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-800">担当学生</h2>
+        <div className="flex items-center gap-x-3 mb-6">
+          <Image
+            width={40}
+            height={40}
+            src={userPhoto || "/default_user.png"}
+            alt={userId}
+            className="w-16 h-16 object-cover rounded-full border-2 border-gray-200"
+            sizes="80px"
+          />
+          <h2 className="text-xl font-semibold text-gray-800">
+            {userName}先生
+          </h2>
         </div>
         {assigned.length === 0 ? (
           <div className="text-gray-500 text-center py-4">

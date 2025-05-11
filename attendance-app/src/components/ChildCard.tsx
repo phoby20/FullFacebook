@@ -72,7 +72,7 @@ export const ChildCard = ({
         checked ? "border-green-400 border-2" : ""
       }`}
     >
-      <div className="flex justify-between items-center mb-2">
+      <div className="flex justify-between items-center">
         {checked ? (
           <span className="text-green-500 text-2xl font-bold">✓</span>
         ) : (
