@@ -66,12 +66,13 @@ model Attendance {
   checkedById String
   checkedBy   User     @relation("Checker", fields: [checkedById], references: [id])
   date        DateTime
+  createdAt   DateTime @default(now()) // 새 필드 추가
 }
 
 model Organization {
   id          String             @id @default(cuid())
   name        String
-  createdAt   DateTime           @default(now())
+  createdAt   DateTime           @default(now()) // 이미 존재
   users       UserOrganization[] // 다대다 관계: 사용자
   groups      Group[]            // 일대다 관계: 단체 내 그룹
 }
