@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import Loading from "@/components/Loading";
+import { formatBirthDay, getGrade } from "../../../../utils/format";
 
 type Admin = {
   id: string;
@@ -52,21 +53,6 @@ export default function AssignChildPage() {
       });
   }, []);
 
-  const getGrade = (birthDay: string): string => {
-    const birthYear = new Date(birthDay).getFullYear();
-    const currentYear = new Date().getFullYear();
-    const age = currentYear - birthYear;
-
-    if (age === 13) return "中学 1年";
-    if (age === 14) return "中学 2年";
-    if (age === 15) return "中学 3年";
-    if (age === 16) return "高校 1年";
-    if (age === 17) return "高校 2年";
-    if (age === 18) return "高校 3年";
-
-    return "";
-  };
-
   const handleAssign = async () => {
     const newErrors = {
       admin: !selectedAdmin,
@@ -111,13 +97,6 @@ export default function AssignChildPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const formatBirthDay = (birthDay: string) => {
-    const date = new Date(birthDay);
-    return `${date.getFullYear()}年 ${
-      date.getMonth() + 1
-    }月 ${date.getDate()}日`;
   };
 
   return (

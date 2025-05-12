@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
+import { formatBirthDay, getGrade } from "../../utils/format";
 
 type Child = {
   id: string;
@@ -15,20 +16,6 @@ type Child = {
   assignedAdminId: string | null;
   createdAt: Date;
 };
-
-function getGrade(birthDay: string): string {
-  const birthYear = new Date(birthDay).getFullYear();
-  const currentYear = new Date().getFullYear();
-  const age = currentYear - birthYear;
-
-  if (age === 13) return "中学 1年";
-  if (age === 14) return "中学 2年";
-  if (age === 15) return "中学 3年";
-  if (age === 16) return "高校 1年";
-  if (age === 17) return "高校 2年";
-  if (age === 18) return "高校 3年";
-  return "";
-}
 
 export const ChildCard = ({
   child,
@@ -120,6 +107,9 @@ export const ChildCard = ({
           <div className="mb-4">
             <p className="text-l text-gray-800">{child.name}</p>
             <p className="text-sm text-gray-500">{getGrade(child.birthDay)}</p>
+            <p className="text-sm text-gray-500">
+              {formatBirthDay(child.birthDay)}
+            </p>
           </div>
           {onCheck && (
             <button
