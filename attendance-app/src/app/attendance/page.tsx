@@ -419,7 +419,7 @@ export default function AllAttendancePage() {
                         {canCheckAttendance && (
                           <button
                             onClick={() => onCheck(child.id, date)}
-                            className={`w-full py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-300 border-2 ${
+                            className={`cursor-pointer w-full py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-300 border-2 ${
                               record?.checkedById
                                 ? "border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 focus:ring-red-500"
                                 : "border-blue-500 text-blue-500 hover:border-blue-600 hover:text-blue-600 focus:ring-blue-500"
@@ -445,7 +445,7 @@ export default function AllAttendancePage() {
         <button
           type="button"
           onClick={() => router.push("/dashboard")}
-          className="bg-gradient-to-r from-gray-500 to-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-gray-600 hover:to-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-300"
+          className="cursor-pointer bg-gradient-to-r from-gray-500 to-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-gray-600 hover:to-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-300"
           aria-label="ダッシュボードに戻る"
         >
           戻る

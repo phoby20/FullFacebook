@@ -81,7 +81,7 @@ export const ChildCard = ({
         <div className="relative" ref={dropdownRef}>
           {onCheck && (
             <button
-              className="text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200"
+              className="cursor-pointer text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200"
               onClick={toggleDropdown}
               aria-haspopup="true"
               aria-expanded={isDropdownOpen}
@@ -91,7 +91,7 @@ export const ChildCard = ({
             </button>
           )}
           {isDropdownOpen && onEdit && (
-            <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 animate-fade-in">
+            <div className="absolute cursor-pointer right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 animate-fade-in">
               <button
                 onClick={() => {
                   onEdit(child.id);
@@ -124,7 +124,7 @@ export const ChildCard = ({
           {onCheck && (
             <button
               onClick={() => onCheck(child.id)}
-              className={`w-full py-3 px-3 rounded-lg font-semibold transition-all duration-300 border-2 ${
+              className={`cursor-pointer w-full py-3 px-3 rounded-lg font-semibold transition-all duration-300 border-2 ${
                 checked
                   ? "border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 focus:ring-red-500"
                   : "border-blue-500 text-blue-500 hover:border-blue-600 hover:text-blue-600 focus:ring-blue-500"
