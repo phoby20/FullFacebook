@@ -16,6 +16,11 @@ export default async function handler(
       return res.status(401).json({ message: "ログインしてください" });
 
     const today = new Date();
+
+    // UTC+9 보정 시간 생성
+    const jstTime = new Date(today.getTime() + 9 * 60 * 60 * 1000); // UTC + 9시간
+    console.log("jestTime", jstTime);
+
     const existing = await prisma.attendance.findFirst({
       where: {
         childId,
@@ -32,7 +37,7 @@ export default async function handler(
 
     await prisma.attendance.create({
       data: {
-        date: new Date(),
+        date: jstTime,
         child: {
           connect: { id: childId },
         },
