@@ -255,7 +255,7 @@ export default function Dashboard() {
             className="w-14 h-14 object-cover rounded-full border-2 border-fuchsia-400"
             sizes="80px"
           />
-          <h2 className="text-xl font-semibold text-gray-800">
+          <h2 className="text-lg font-semibold text-gray-800">
             {user.name} 先生
           </h2>
         </div>

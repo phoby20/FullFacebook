@@ -20,9 +20,9 @@ export const ChildrenSection = ({
   if (childList.length === 0) return null;
 
   return (
-    <div className="mb-12 p-3 bg-white rounded-2xl shadow-xl border border-gray-100 transform transition-all hover:shadow-2xl">
+    <div className="mb-12 p-3 pb-6 pt-6 bg-white rounded-2xl shadow-xl border border-gray-100 transform transition-all hover:shadow-xl">
       {title && (
-        <div className="flex items-center mb-6 gap-x-3 pl-4 ">
+        <div className="flex items-center mb-4 gap-x-3 pl-4 ">
           <Image
             width={40}
             height={40}
@@ -31,7 +31,7 @@ export const ChildrenSection = ({
             className="w-12 h-12 object-cover rounded-full border-2 border-fuchsia-400"
             sizes="80px"
           />
-          <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
+          <h2 className="font-semibold text-gray-800">{title}</h2>
         </div>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
