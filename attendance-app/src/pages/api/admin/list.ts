@@ -16,6 +16,7 @@ export default async function handler(
         id: true,
         name: true,
         photoPath: true,
+        birthDay: true,
         assignedChildren: {
           select: {
             id: true,

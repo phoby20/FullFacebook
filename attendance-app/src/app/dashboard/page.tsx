@@ -6,8 +6,8 @@ import { jwtDecode } from "jwt-decode";
 import { ChildrenSection } from "@/components/ChildrenSection";
 import Loading from "@/components/Loading";
 import Image from "next/image";
-import { User } from "@/type/user";
 import { Child } from "@/type/child";
+import { User } from "@/type/user";
 
 type DecodedToken = {
   userId: string;
@@ -26,6 +26,8 @@ export default function Dashboard() {
   const [message, setMessage] = useState("");
   const [isFadingOut, setIsFadingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [thisMonthBirthdays, setThisMonthBirthdays] = useState<string[]>([]);
+  const [nextMonthBirthdays, setNextMonthBirthdays] = useState<string[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -98,6 +100,9 @@ export default function Dashboard() {
         });
         const adminData = await adminRes.json();
         setAdmins(adminData);
+
+        // 생일 데이터 처리
+        processBirthdays(adminData, childData);
       } catch (err) {
         console.error("データ取得エラー:", err);
         setError("データの取得に失敗しました");
@@ -109,14 +114,53 @@ export default function Dashboard() {
     fetchData();
   }, [user]);
 
+  // 생일 데이터 처리 함수
+  const processBirthdays = (admins: User[], children: Child[]) => {
+    const now = new Date();
+    const thisMonth = now.getMonth() + 1; // 1~12
+    const nextMonth = thisMonth === 12 ? 1 : thisMonth + 1;
+
+    const thisMonthNames: string[] = [];
+    const nextMonthNames: string[] = [];
+
+    // 선생님 생일 확인
+    admins.forEach((admin) => {
+      if (admin.birthDay) {
+        const birthDate = new Date(admin.birthDay);
+        const birthMonth = birthDate.getMonth() + 1;
+        if (birthMonth === thisMonth) {
+          thisMonthNames.push(`${admin.name} 先生`);
+        } else if (birthMonth === nextMonth) {
+          nextMonthNames.push(`${admin.name} 先生`);
+        }
+      }
+    });
+
+    // 학생 생일 확인
+    children.forEach((child) => {
+      if (child.birthDay) {
+        const birthDate = new Date(child.birthDay);
+        const birthMonth = birthDate.getMonth() + 1;
+        if (birthMonth === thisMonth) {
+          thisMonthNames.push(child.name);
+        } else if (birthMonth === nextMonth) {
+          nextMonthNames.push(child.name);
+        }
+      }
+    });
+
+    setThisMonthBirthdays(thisMonthNames);
+    setNextMonthBirthdays(nextMonthNames);
+  };
+
   // 메시지 3초 후 사라지게 설정
   useEffect(() => {
     if (message) {
       setIsFadingOut(false);
       const timer = setTimeout(() => {
         setIsFadingOut(true);
-        setTimeout(() => setMessage(""), 300); // 페이드 아웃 애니메이션 후 메시지 제거
-      }, 2700); // 3초 - 애니메이션 시간(0.3초)
+        setTimeout(() => setMessage(""), 300);
+      }, 2700);
       return () => clearTimeout(timer);
     }
   }, [message]);
@@ -268,46 +312,98 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-3">
-      {isLoading && <Loading />}
-      <header className="p-2 pr-4 pl-4 mb-8 top-0 z-10">
-        <div className="flex items-center">
-          <h1 className="text-xl font-bold text-gray-800 w-30">出席チェック</h1>
-          <div className="flex gap-2">
-            <button
-              onClick={handleAddChild}
-              className="cursor-pointer bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-2 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300"
-              aria-label="学生追加ボタン"
-            >
-              学生追加
-            </button>
-            {user && (user.role === "superAdmin" || user.role === "master") && (
-              <button
-                onClick={handleAddAdmin}
-                className="cursor-pointer bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-5 py-2 rounded-lg font-semibold hover:from-yellow-600 hover:to-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-all duration-300"
-                aria-label="先生追加ボタン"
-              >
-                先生追加
-              </button>
+    <div>
+      {/* 생일 섹션 */}
+      <div
+        className="bg-white rounded-lg shadow-md p-2 pl-3 text-sm"
+        aria-label="今月と来月の誕生日リスト"
+      >
+        <div className="space-y-2">
+          <div className="flex flex-col gap-1">
+            <h3 className="font-medium text-gray-700">
+              🎉 今月の誕生日 ({thisMonthBirthdays.length}人)
+            </h3>
+            {thisMonthBirthdays.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {thisMonthBirthdays.map((name, index) => (
+                  <span
+                    key={index}
+                    className=" text-gray-500 bg-gray-200 rounded-full px-2"
+                  >
+                    {name}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-2 text-gray-500">今月の誕生日はありません</p>
+            )}
+          </div>
+          <div className="flex flex-col gap-1">
+            <h3 className="font-medium text-gray-700">
+              👏 来月の誕生日 ({nextMonthBirthdays.length}人)
+            </h3>
+            {nextMonthBirthdays.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {nextMonthBirthdays.map((name, index) => (
+                  <span
+                    key={index}
+                    className=" text-gray-500 bg-gray-200 rounded-full px-2"
+                  >
+                    {name}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-2 text-gray-500">来月の誕生日はありません</p>
             )}
           </div>
         </div>
-      </header>
+      </div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-3">
+        {isLoading && <Loading />}
 
-      {message && (
-        <div
-          className={`fixed bottom-4 right-4 max-w-sm p-4 bg-green-100 text-green-700 rounded-lg shadow-md z-50 ${
-            isFadingOut ? "animate-fade-out" : "animate-fade-in"
-          }`}
-          aria-live="polite"
-        >
-          {message}
-        </div>
-      )}
-      {user &&
-        (user.role === "superAdmin"
-          ? renderSuperAdminView()
-          : renderAdminView())}
+        <header className="p-2 pr-4 pl-4 mb-8 mt-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-bold text-gray-800 w-30">
+              出席チェック
+            </h1>
+            <div className="flex gap-2">
+              <button
+                onClick={handleAddChild}
+                className="cursor-pointer bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-2 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300"
+                aria-label="学生追加ボタン"
+              >
+                学生追加
+              </button>
+              {user &&
+                (user.role === "superAdmin" || user.role === "master") && (
+                  <button
+                    onClick={handleAddAdmin}
+                    className="cursor-pointer bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-5 py-2 rounded-lg font-semibold hover:from-yellow-600 hover:to-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-all duration-300"
+                    aria-label="先生追加ボタン"
+                  >
+                    先生追加
+                  </button>
+                )}
+            </div>
+          </div>
+        </header>
+
+        {message && (
+          <div
+            className={`fixed bottom-4 right-4 max-w-sm p-4 bg-green-100 text-green-700 rounded-lg shadow-md z-50 ${
+              isFadingOut ? "animate-fade-out" : "animate-fade-in"
+            }`}
+            aria-live="polite"
+          >
+            {message}
+          </div>
+        )}
+        {user &&
+          (user.role === "superAdmin"
+            ? renderSuperAdminView()
+            : renderAdminView())}
+      </div>
     </div>
   );
 }
