@@ -5,17 +5,12 @@ import { useEffect, useState, useRef } from "react";
 import { jwtDecode } from "jwt-decode";
 import Link from "next/link";
 import Image from "next/image";
+import { User } from "@/type/user";
 
 type DecodedToken = {
   userId: string;
   exp: number;
   iat: number;
-};
-
-type User = {
-  id: string;
-  name: string;
-  role: "master" | "superAdmin" | "admin" | "child";
 };
 
 export default function Header() {
@@ -182,7 +177,7 @@ export default function Header() {
                   <Image
                     width={8}
                     height={8}
-                    src={"/default_user.png"}
+                    src={user.photoPath || "/default_user.png"}
                     alt="person"
                     className="w-8 h-8 object-cover rounded-full"
                   />
