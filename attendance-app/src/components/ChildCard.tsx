@@ -55,7 +55,7 @@ export const ChildCard = ({
 
   return (
     <div
-      className={`p-3 bg-white rounded-xl shadow-md border border-gray-100 transform transition-all hover:scale-105 hover:shadow-xl ${
+      className={`p-2 px-3 bg-white rounded-xl shadow-md border border-gray-100 transform transition-all hover:scale-105 hover:shadow-xl ${
         checked ? "border-green-400 border-2" : ""
       }`}
     >
@@ -104,17 +104,16 @@ export const ChildCard = ({
           sizes="80px"
         />
         <div className="flex-1">
-          <div className="mb-4">
+          <div className="mb-3">
             <p className="text-l text-gray-800">{child.name}</p>
-            <p className="text-sm text-gray-500">{getGrade(child.birthDay)}</p>
             <p className="text-sm text-gray-500">
-              {formatBirthDay(child.birthDay)}
+              {getGrade(child.birthDay)}（{formatBirthDay(child.birthDay)}）
             </p>
           </div>
           {onCheck && (
             <button
               onClick={() => onCheck(child.id)}
-              className={`cursor-pointer w-full py-3 px-3 rounded-lg font-semibold transition-all duration-300 border-2 ${
+              className={`cursor-pointer w-30 py-2 px-3 rounded-lg font-semibold transition-all duration-300 border-2 ${
                 checked
                   ? "border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 focus:ring-red-500"
                   : "border-blue-500 text-blue-500 hover:border-blue-600 hover:text-blue-600 focus:ring-blue-500"
