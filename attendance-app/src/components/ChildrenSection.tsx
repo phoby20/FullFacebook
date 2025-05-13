@@ -1,27 +1,17 @@
+import { Child } from "@/type/child";
 import { ChildCard } from "./ChildCard";
-
-type Child = {
-  id: string;
-  name: string;
-  birthDay: string;
-  photoPath: string;
-  gender: "male" | "female";
-  phone: string | null;
-  lineId: string | null;
-  cacaoTalkId: string | null;
-  managerId: string;
-  assignedAdminId: string | null;
-  createdAt: Date;
-};
+import Image from "next/image";
 
 export const ChildrenSection = ({
   title,
   childList,
   attendanceMap,
+  userPhotoPath,
   onCheck,
   onEdit,
 }: {
   title: string;
+  userPhotoPath: string | undefined;
   childList: Child[];
   attendanceMap: Record<string, boolean>;
   onCheck?: (id: string) => void;
@@ -32,7 +22,17 @@ export const ChildrenSection = ({
   return (
     <div className="mb-12 p-3 bg-white rounded-2xl shadow-xl border border-gray-100 transform transition-all hover:shadow-2xl">
       {title && (
-        <h2 className="text-xl font-semibold text-gray-800 mb-6">{title}</h2>
+        <div className="flex items-center mb-6 gap-x-3 ">
+          <Image
+            width={40}
+            height={40}
+            src={userPhotoPath || "/default_user.png"}
+            alt={userPhotoPath ?? ""}
+            className="w-12 h-12 object-cover rounded-full border-2 border-gray-200"
+            sizes="80px"
+          />
+          <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
+        </div>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {childList.map((child, i) => (

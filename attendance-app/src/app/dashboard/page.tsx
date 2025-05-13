@@ -6,6 +6,8 @@ import { jwtDecode } from "jwt-decode";
 import { ChildrenSection } from "@/components/ChildrenSection";
 import Loading from "@/components/Loading";
 import Image from "next/image";
+import { User } from "@/type/user";
+import { Child } from "@/type/child";
 
 type DecodedToken = {
   userId: string;
@@ -13,36 +15,10 @@ type DecodedToken = {
   iat: number;
 };
 
-type User = {
-  id: string;
-  name: string;
-  role: "master" | "superAdmin" | "admin" | "child";
-  photoPath?: string;
-};
-
-type Child = {
-  id: string;
-  name: string;
-  birthDay: string;
-  photoPath: string;
-  gender: "male" | "female";
-  phone: string | null;
-  lineId: string | null;
-  cacaoTalkId: string | null;
-  managerId: string;
-  assignedAdminId: string | null;
-  createdAt: Date;
-};
-
-type Admin = {
-  id: string;
-  name: string;
-};
-
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [children, setChildren] = useState<Child[]>([]);
-  const [admins, setAdmins] = useState<Admin[]>([]);
+  const [admins, setAdmins] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [attendanceMap, setAttendanceMap] = useState<Record<string, boolean>>(
     {}
@@ -120,13 +96,11 @@ export default function Dashboard() {
         childData.forEach((child: Child) => checkAttendanceStatus(child.id));
 
         // superAdmin일 경우 관리자 목록 가져오기
-        if (user.role === "superAdmin") {
-          const adminRes = await fetch("/api/admin/list", {
-            credentials: "include",
-          });
-          const adminData = await adminRes.json();
-          setAdmins(adminData);
-        }
+        const adminRes = await fetch("/api/admin/list", {
+          credentials: "include",
+        });
+        const adminData = await adminRes.json();
+        setAdmins(adminData);
       } catch (err) {
         console.error("データ取得エラー:", err);
         setError("データの取得に失敗しました");
@@ -191,10 +165,12 @@ export default function Dashboard() {
         const adminChildren = children.filter(
           (child) => child.assignedAdminId === admin.id
         );
+        console.log("admin.photoPath:", admin.photoPath);
         return (
           <ChildrenSection
             key={admin.id}
             title={`${admin.name} 先生`}
+            userPhotoPath={admin.photoPath}
             childList={adminChildren}
             attendanceMap={attendanceMap}
             onCheck={handleCheckAttendance}
@@ -204,6 +180,7 @@ export default function Dashboard() {
       })}
       <ChildrenSection
         title="未割り当ての学生"
+        userPhotoPath=""
         childList={children.filter((c) => !c.assignedAdminId)}
         attendanceMap={attendanceMap}
         onCheck={handleCheckAttendance}
@@ -215,7 +192,6 @@ export default function Dashboard() {
   const renderAdminView = () => {
     if (!user) return null;
     const assigned = children.filter((c) => c.assignedAdminId === user.id);
-    const others = children.filter((c) => c.assignedAdminId !== user.id);
 
     return (
       <>
@@ -240,14 +216,38 @@ export default function Dashboard() {
         <ChildrenSection
           title=""
           childList={assigned}
+          userPhotoPath={user.photoPath}
           attendanceMap={attendanceMap}
           onCheck={handleCheckAttendance}
           onEdit={handleEditChild}
         />
-        {assigned.length ? <hr className="my-8 border-gray-200" /> : null}
+        {assigned.length ? (
+          <>
+            <hr className="my-18 border-gray-200" />
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6 pl-6">
+              その他の学生
+            </h2>
+          </>
+        ) : null}
+        {admins.map((admin) => {
+          if (admin.id === user.id) return null; // 自分のセクションはスキップ
+          const adminChildren = children.filter(
+            (child) => child.assignedAdminId === admin.id
+          );
+          return (
+            <ChildrenSection
+              key={admin.id}
+              title={`${admin.name} 先生`}
+              userPhotoPath={admin.photoPath}
+              childList={adminChildren}
+              attendanceMap={attendanceMap}
+            />
+          );
+        })}
         <ChildrenSection
-          title="その他の学生"
-          childList={others}
+          title="未割り当ての学生"
+          userPhotoPath=""
+          childList={children.filter((c) => !c.assignedAdminId)}
           attendanceMap={attendanceMap}
         />
       </>
