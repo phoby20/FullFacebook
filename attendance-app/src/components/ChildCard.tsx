@@ -97,13 +97,13 @@ export const ChildCard = ({
                   </button>
                 )}
                 {isDropdownOpen && onEdit && (
-                  <div className="absolute cursor-pointer right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 animate-fade-in">
+                  <div className="absolute cursor-pointer right-0 mt-2 w-26 bg-white border border-gray-200 rounded-lg shadow-lg z-10 animate-fade-in">
                     <button
                       onClick={() => {
                         onEdit(child.id);
                         setIsDropdownOpen(false);
                       }}
-                      className="w-full px-4 py-2 text-left text-white bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                      className="w-full px-4 py-2 text-white bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors duration-200"
                       aria-label="学生情報を修正"
                     >
                       修正
