@@ -74,7 +74,7 @@ export default async function handler(
       });
     } else {
       if (!existing) {
-        return res.status(404).json({ message: "出勤記録がありません" });
+        return res.status(404).json({ message: "出席記録がありません" });
       }
 
       console.log("Deleting attendance record:", existing.id);

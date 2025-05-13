@@ -31,7 +31,7 @@ export const ChildrenSection = ({
             className="w-12 h-12 object-cover rounded-full border-2 border-gray-200"
             sizes="80px"
           />
-          <h2 className="text-xl font-semibold text-gray-800">{title}</h2>
+          <h2 className="text-lg font-semibold text-gray-800">{title}</h2>
         </div>
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

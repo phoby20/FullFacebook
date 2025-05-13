@@ -81,7 +81,9 @@ export const ChildCard = ({
         <div className="flex-1">
           <div className="mb-3">
             <div className="flex items-center justify-between">
-              <p className="text-l text-gray-800 font-semibold">{child.name}</p>
+              <p className="text-sm text-gray-800 font-semibold">
+                {child.name}
+              </p>
               <div className="relative" ref={dropdownRef}>
                 {onCheck && (
                   <button
@@ -111,14 +113,14 @@ export const ChildCard = ({
               </div>
             </div>
 
-            <p className="text-sm text-gray-500">
+            <p className="text-xs text-gray-500">
               {getGrade(child.birthDay)}（{formatBirthDay(child.birthDay)}）
             </p>
           </div>
           {onCheck && (
             <button
               onClick={() => onCheck(child.id)}
-              className={`cursor-pointer w-30 py-2 px-3 rounded-lg font-semibold transition-all duration-300 border-2 ${
+              className={`cursor-pointer w-25 py-2 px-3 rounded-lg font-semibold transition-all duration-300 border-2 ${
                 checked
                   ? "border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 focus:ring-red-500"
                   : "border-blue-500 text-blue-500 hover:border-blue-600 hover:text-blue-600 focus:ring-blue-500"
