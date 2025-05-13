@@ -209,7 +209,6 @@ export default function Dashboard() {
   const handleEditChild = (childId: string) =>
     router.push(`/child/edit/${childId}`);
 
-  const handleAddChild = () => router.push("/child/add");
   const handleAddAdmin = () => router.push("/register");
 
   const renderSuperAdminView = () => (
@@ -368,13 +367,6 @@ export default function Dashboard() {
               出席チェック
             </h1>
             <div className="flex gap-2">
-              <button
-                onClick={handleAddChild}
-                className="cursor-pointer bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-2 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300"
-                aria-label="学生追加ボタン"
-              >
-                学生追加
-              </button>
               {user &&
                 (user.role === "superAdmin" || user.role === "master") && (
                   <button

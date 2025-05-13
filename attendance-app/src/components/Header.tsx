@@ -22,6 +22,8 @@ export default function Header() {
   const [error, setError] = useState<string | null>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
+  const handleAddChild = () => router.push("/child/add");
+
   useEffect(() => {
     const fetchUser = async () => {
       const token = document.cookie
@@ -134,6 +136,14 @@ export default function Header() {
                 aria-label="出席状況ページへ"
               >
                 出席現状
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-200 transition-all duration-300 group-hover:w-full"></span>
+              </Link>
+              <Link
+                href="/child/add"
+                className="relative text-white hover:text-blue-200 transition-colors duration-300 group"
+                aria-label="新規学生登録"
+              >
+                新規学生登録
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-200 transition-all duration-300 group-hover:w-full"></span>
               </Link>
               {user.role === "superAdmin" && (
@@ -261,9 +271,16 @@ export default function Header() {
             <button
               onClick={handleMypage}
               className="text-center text-gray-800 hover:bg-blue-50 hover:text-blue-600 py-2 rounded-lg transition-colors duration-200"
-              aria-label="マイページへ"
+              aria-label="先生情報修正"
             >
               先生情報修正
+            </button>
+            <button
+              onClick={handleAddChild}
+              className="text-center text-gray-800 hover:bg-blue-50 hover:text-blue-600 py-2 rounded-lg transition-colors duration-200"
+              aria-label="新規学生登録"
+            >
+              新規学生登録
             </button>
             <button
               onClick={() => {

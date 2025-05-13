@@ -56,42 +56,15 @@ export const ChildCard = ({
   return (
     <div
       className={`p-2 px-3 bg-white rounded-xl shadow-md border border-gray-100 transform transition-all hover:scale-105 hover:shadow-xl ${
-        checked ? "border-green-400 border-2" : ""
+        checked ? "border-green-400 border-3" : ""
       }`}
     >
-      <div className="flex justify-between items-center">
-        {checked ? (
+      <div className="flex justify-end items-center">
+        {/* {checked ? (
           <span className="text-green-500 text-2xl font-bold">✓</span>
         ) : (
           <span className="text-gray-300 text-2xl">●</span>
-        )}
-        <div className="relative" ref={dropdownRef}>
-          {onCheck && (
-            <button
-              className="cursor-pointer text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200"
-              onClick={toggleDropdown}
-              aria-haspopup="true"
-              aria-expanded={isDropdownOpen}
-              aria-label="オプションを開く"
-            >
-              more
-            </button>
-          )}
-          {isDropdownOpen && onEdit && (
-            <div className="absolute cursor-pointer right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 animate-fade-in">
-              <button
-                onClick={() => {
-                  onEdit(child.id);
-                  setIsDropdownOpen(false);
-                }}
-                className="w-full px-4 py-2 text-left text-white bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors duration-200"
-                aria-label="学生情報を修正"
-              >
-                修正
-              </button>
-            </div>
-          )}
-        </div>
+        )} */}
       </div>
       <div className="flex items-center gap-4">
         <Image
@@ -99,13 +72,45 @@ export const ChildCard = ({
           height={80}
           src={child.photoPath || "/default_user.png"}
           alt={child.name}
-          className="w-24 h-24 object-cover rounded-full border-2 border-gray-200"
+          className={`w-24 h-24 object-cover rounded-full border-2 border-gray-200" ${
+            checked ? "border-4 border-green-500" : ""
+          }`}
           priority={highlight}
           sizes="80px"
         />
         <div className="flex-1">
           <div className="mb-3">
-            <p className="text-l text-gray-800">{child.name}</p>
+            <div className="flex items-center justify-between">
+              <p className="text-l text-gray-800 font-semibold">{child.name}</p>
+              <div className="relative" ref={dropdownRef}>
+                {onCheck && (
+                  <button
+                    className="text-l cursor-pointer text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200"
+                    onClick={toggleDropdown}
+                    aria-haspopup="true"
+                    aria-expanded={isDropdownOpen}
+                    aria-label="オプションを開く"
+                  >
+                    ⁝
+                  </button>
+                )}
+                {isDropdownOpen && onEdit && (
+                  <div className="absolute cursor-pointer right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-10 animate-fade-in">
+                    <button
+                      onClick={() => {
+                        onEdit(child.id);
+                        setIsDropdownOpen(false);
+                      }}
+                      className="w-full px-4 py-2 text-left text-white bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors duration-200"
+                      aria-label="学生情報を修正"
+                    >
+                      修正
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
             <p className="text-sm text-gray-500">
               {getGrade(child.birthDay)}（{formatBirthDay(child.birthDay)}）
             </p>
