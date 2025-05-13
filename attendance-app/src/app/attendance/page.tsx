@@ -42,6 +42,7 @@ export default function AllAttendancePage() {
     return date;
   });
   const [message, setMessage] = useState("");
+  const [isFadingOut, setIsFadingOut] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState<string>("");
   const [userRole, setUserRole] = useState<
@@ -56,12 +57,24 @@ export default function AllAttendancePage() {
     )}-${String(date.getDate()).padStart(2, "0")}`;
   };
 
+  // 메시지 3초 후 사라지게 설정
+  useEffect(() => {
+    if (message) {
+      setIsFadingOut(false);
+      const timer = setTimeout(() => {
+        setIsFadingOut(true);
+        setTimeout(() => setMessage(""), 300); // 페이드 아웃 애니메이션 후 메시지 제거
+      }, 2700); // 3초 - 애니메이션 시간(0.3초)
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+
   const onCheck = async (childId: string, date: Date) => {
     setIsLoading(true);
     try {
       const child = children.find((c) => c.id === childId);
       if (!child) {
-        setMessage("학생을 찾을 수 없습니다.");
+        setMessage("学生が見つかりませんでした。");
         return;
       }
       const record = child.attendance.find(
@@ -105,7 +118,7 @@ export default function AllAttendancePage() {
               return child;
             })
           );
-          setMessage("서버에 출석 기록이 없어 로컬 상태를 업데이트했습니다.");
+          setMessage("サーバーに出席記録がなく、ローカル状態を更新しました。");
           await refreshAttendanceData();
           return;
         }
@@ -113,7 +126,7 @@ export default function AllAttendancePage() {
         throw new Error(`API request failed with status ${res.status}`);
       }
 
-      setMessage(data.message || "처리 완료!");
+      setMessage(data.message || "処理完了!");
       setChildren((prevChildren) => {
         const newChildren = prevChildren.map((child) => {
           if (child.id === childId) {
@@ -148,7 +161,7 @@ export default function AllAttendancePage() {
       await refreshAttendanceData();
     } catch (error) {
       console.error("Error updating attendance:", error);
-      setMessage("출석 상태를 업데이트하지 못했습니다.");
+      setMessage("出席状態の更新に失敗しました。");
     } finally {
       setIsLoading(false);
     }
@@ -176,7 +189,7 @@ export default function AllAttendancePage() {
       }
     } catch (error) {
       console.error("Error refreshing attendance:", error);
-      setMessage("출석 정보를 새로고치지 못했습니다.");
+      setMessage("出席情報の更新に失敗しました。");
     }
     setIsLoading(false);
   };
@@ -195,7 +208,7 @@ export default function AllAttendancePage() {
       setUserId(decoded.userId);
       setUserRole(decoded.role);
       if (decoded.role === "child") {
-        setMessage("출석 현황을 볼 권한이 없습니다.");
+        setMessage("出席状況を確認する権限がありません。");
         setIsLoading(false);
         return;
       }
@@ -263,65 +276,72 @@ export default function AllAttendancePage() {
 
       {message && (
         <div
-          className="mb-6 p-4 bg-red-100 text-red-700 rounded-lg shadow-md animate-fade-in"
+          className={`fixed bottom-4 right-4 max-w-sm p-4 rounded-lg shadow-md z-50 ${
+            message.includes("失敗")
+              ? "bg-red-100 text-red-700"
+              : "bg-green-100 text-green-700"
+          } ${isFadingOut ? "animate-fade-out" : "animate-fade-in"}`}
           aria-live="polite"
         >
           {message}
         </div>
       )}
 
-      <div className="mb-8 flex flex-col sm:flex-row gap-6">
-        <div className="flex-1">
-          <label
-            htmlFor="startDate"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            スタート日
-          </label>
-          <DatePicker
-            id="startDate"
-            selected={startDate}
-            onChange={(date: Date | null) => {
-              if (date) {
-                date.setHours(0, 0, 0, 0); // KST 00:00
-                setStartDate(date);
-              } else {
-                setStartDate(null);
-              }
-            }}
-            dateFormat="yyyy-MM-dd"
-            placeholderText="시작 날짜 선택"
-            locale={ko}
-            maxDate={endDate || new Date()}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-            aria-label="開始日を選択"
-          />
-        </div>
-        <div className="flex-1">
-          <label
-            htmlFor="endDate"
-            className="block text-sm font-medium text-gray-700 mb-2"
-          >
-            エンド日
-          </label>
-          <DatePicker
-            id="endDate"
-            selected={endDate}
-            onChange={(date: Date | null) => {
-              if (date) {
-                date.setHours(0, 0, 0, 0); // KST 00:00
-                setEndDate(date);
-              } else {
-                setEndDate(null);
-              }
-            }}
-            dateFormat="yyyy-MM-dd"
-            placeholderText="종료 날짜 선택"
-            locale={ko}
-            maxDate={new Date()}
-            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-            aria-label="終了日を選択"
-          />
+      <div className="p-3 bg-white rounded-xl border border-gray-300 mb-6">
+        <p className="text-lg mb-2 pl-2">検索</p>
+        <div className="mb-3 flex flex-row sm:flex-row gap-6">
+          <div className="flex-1">
+            <label
+              htmlFor="startDate"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              スタート日
+            </label>
+            <DatePicker
+              id="startDate"
+              selected={startDate}
+              onChange={(date: Date | null) => {
+                if (date) {
+                  date.setHours(0, 0, 0, 0); // KST 00:00
+                  setStartDate(date);
+                } else {
+                  setStartDate(null);
+                }
+              }}
+              dateFormat="yyyy-MM-dd"
+              placeholderText="시작 날짜 선택"
+              locale={ko}
+              maxDate={endDate || new Date()}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+              aria-label="開始日を選択"
+            />
+          </div>
+          <div className="flex-1">
+            <label
+              htmlFor="endDate"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              エンド日
+            </label>
+            <DatePicker
+              id="endDate"
+              selected={endDate}
+              onChange={(date: Date | null) => {
+                if (date) {
+                  date.setHours(0, 0, 0, 0); // KST 00:00
+                  setEndDate(date);
+                } else {
+                  setEndDate(null);
+                }
+              }}
+              dateFormat="yyyy-MM-dd"
+              placeholderText="종료 날짜 선택"
+              locale={ko}
+              maxDate={new Date()}
+              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+              aria-label="終了日を選択"
+            />
+          </div>
         </div>
       </div>
 
@@ -329,7 +349,7 @@ export default function AllAttendancePage() {
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-blue-400">
-              <th className="border-b border-gray-200 p-2 text-left sticky left-0 bg-blue-400 min-w-[150px] rounded-tl-xl">
+              <th className="border-b border-gray-200 p-2 sticky left-0 bg-blue-400 min-w-[150px] rounded-tl-xl">
                 学生
               </th>
               {dateRange.map((date) => (

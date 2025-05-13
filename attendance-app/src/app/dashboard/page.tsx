@@ -24,6 +24,7 @@ export default function Dashboard() {
     {}
   );
   const [message, setMessage] = useState("");
+  const [isFadingOut, setIsFadingOut] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
@@ -42,11 +43,9 @@ export default function Dashboard() {
       }
 
       try {
-        // 토큰에서 userId 추출
         const decoded: DecodedToken = jwtDecode(token);
         const userId = decoded.userId;
 
-        // DB에서 사용자 정보 가져오기
         const res = await fetch(`/api/users/${userId}`, {
           cache: "no-store",
           headers: {
@@ -87,7 +86,6 @@ export default function Dashboard() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // 어린이 목록 가져오기
         const childRes = await fetch("/api/child/list", {
           credentials: "include",
         });
@@ -95,7 +93,6 @@ export default function Dashboard() {
         setChildren(childData);
         childData.forEach((child: Child) => checkAttendanceStatus(child.id));
 
-        // superAdmin일 경우 관리자 목록 가져오기
         const adminRes = await fetch("/api/admin/list", {
           credentials: "include",
         });
@@ -111,6 +108,18 @@ export default function Dashboard() {
 
     fetchData();
   }, [user]);
+
+  // 메시지 3초 후 사라지게 설정
+  useEffect(() => {
+    if (message) {
+      setIsFadingOut(false);
+      const timer = setTimeout(() => {
+        setIsFadingOut(true);
+        setTimeout(() => setMessage(""), 300); // 페이드 아웃 애니메이션 후 메시지 제거
+      }, 2700); // 3초 - 애니메이션 시간(0.3초)
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
 
   const checkAttendanceStatus = async (childId: string) => {
     setIsLoading(true);
@@ -268,7 +277,7 @@ export default function Dashboard() {
             <button
               onClick={handleAddChild}
               className="cursor-pointer bg-gradient-to-r from-blue-500 to-blue-600 text-white px-5 py-2 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300"
-              aria-label="학생 추가 버튼"
+              aria-label="学生追加ボタン"
             >
               学生追加
             </button>
@@ -276,7 +285,7 @@ export default function Dashboard() {
               <button
                 onClick={handleAddAdmin}
                 className="cursor-pointer bg-gradient-to-r from-yellow-500 to-yellow-600 text-white px-5 py-2 rounded-lg font-semibold hover:from-yellow-600 hover:to-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 transition-all duration-300"
-                aria-label="선생님 추가 버튼"
+                aria-label="先生追加ボタン"
               >
                 先生追加
               </button>
@@ -287,7 +296,9 @@ export default function Dashboard() {
 
       {message && (
         <div
-          className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg shadow-md animate-fade-in"
+          className={`fixed bottom-4 right-4 max-w-sm p-4 bg-green-100 text-green-700 rounded-lg shadow-md z-50 ${
+            isFadingOut ? "animate-fade-out" : "animate-fade-in"
+          }`}
           aria-live="polite"
         >
           {message}
