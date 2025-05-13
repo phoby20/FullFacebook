@@ -439,7 +439,7 @@ export default function AllAttendancePage() {
                         {canCheckAttendance && (
                           <button
                             onClick={() => onCheck(child.id, date)}
-                            className={`cursor-pointer w-full py-2 px-3 rounded-lg text-sm font-semibold transition-all duration-300 border-2 ${
+                            className={`cursor-pointer w-full py-2 px-3 rounded-lg text-xs font-semibold transition-all duration-300 border-2 ${
                               record?.checkedById
                                 ? "border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 focus:ring-red-500"
                                 : "border-blue-500 text-blue-500 hover:border-blue-600 hover:text-blue-600 focus:ring-blue-500"
