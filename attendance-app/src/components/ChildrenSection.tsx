@@ -22,13 +22,13 @@ export const ChildrenSection = ({
   return (
     <div className="mb-12 p-3 bg-white rounded-2xl shadow-xl border border-gray-100 transform transition-all hover:shadow-2xl">
       {title && (
-        <div className="flex items-center mb-6 gap-x-3 ">
+        <div className="flex items-center mb-6 gap-x-3 pl-4 ">
           <Image
             width={40}
             height={40}
             src={userPhotoPath || "/default_user.png"}
             alt={userPhotoPath ?? ""}
-            className="w-12 h-12 object-cover rounded-full border-2 border-gray-200"
+            className="w-12 h-12 object-cover rounded-full border-2 border-fuchsia-400"
             sizes="80px"
           />
           <h2 className="text-lg font-semibold text-gray-800">{title}</h2>

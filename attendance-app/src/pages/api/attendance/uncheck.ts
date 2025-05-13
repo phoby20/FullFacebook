@@ -15,8 +15,12 @@ export default async function handler(
     return res.status(401).json({ message: "ログインしてください" });
 
   const today = new Date();
-  const start = new Date(today.setHours(0, 0, 0, 0));
-  const end = new Date(today.setHours(23, 59, 59, 999));
+  // UTC+9 보정 시간 생성
+  const jstTime = new Date(today.getTime() + 9 * 60 * 60 * 1000); // UTC + 9시간
+  console.log("jestTime", jstTime);
+
+  const start = new Date(jstTime.setHours(0, 0, 0, 0));
+  const end = new Date(jstTime.setHours(23, 59, 59, 999));
 
   const deleted = await prisma.attendance.deleteMany({
     where: {
@@ -25,9 +29,7 @@ export default async function handler(
     },
   });
 
-  res
-    .status(200)
-    .json({
-      message: deleted.count > 0 ? "出席がキャンセルされました" : "記録なし",
-    });
+  res.status(200).json({
+    message: deleted.count > 0 ? "出席がキャンセルされました" : "記録なし",
+  });
 }

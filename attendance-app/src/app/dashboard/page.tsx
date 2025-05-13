@@ -217,7 +217,6 @@ export default function Dashboard() {
         const adminChildren = children.filter(
           (child) => child.assignedAdminId === admin.id
         );
-        console.log("admin.photoPath:", admin.photoPath);
         return (
           <ChildrenSection
             key={admin.id}
@@ -247,13 +246,13 @@ export default function Dashboard() {
 
     return (
       <>
-        <div className="flex items-center gap-x-3 mb-6">
+        <div className="flex items-center gap-x-3 mb-6 pl-4">
           <Image
             width={40}
             height={40}
             src={user.photoPath || "/default_user.png"}
             alt={user.id}
-            className="w-16 h-16 object-cover rounded-full border-2 border-gray-200"
+            className="w-14 h-14 object-cover rounded-full border-2 border-fuchsia-400"
             sizes="80px"
           />
           <h2 className="text-xl font-semibold text-gray-800">

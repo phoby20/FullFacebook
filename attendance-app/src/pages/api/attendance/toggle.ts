@@ -36,8 +36,8 @@ export default async function handler(
       return res.status(400).json({ message: "유효하지 않은 날짜 형식입니다" });
     }
 
-    const start = new Date(date + "T00:00:00+09:00"); // KST 기준
-    const end = new Date(date + "T23:59:59.999+09:00");
+    const start = new Date(date + "T00:00:00Z"); // KST 기준
+    const end = new Date(date + "T23:59:59.999Z");
     console.log("Parsed date:", { targetDate, start, end });
 
     const existing = await prisma.attendance.findFirst({
