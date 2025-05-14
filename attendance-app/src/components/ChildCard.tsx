@@ -120,7 +120,7 @@ export const ChildCard = ({
           {onCheck && (
             <button
               onClick={() => onCheck(child.id)}
-              className={`cursor-pointer w-25 py-2 px-3 rounded-lg font-semibold transition-all duration-300 border-2 ${
+              className={`cursor-pointer w-30 py-2 px-3 rounded-lg font-semibold transition-all duration-300 border-2 ${
                 checked
                   ? "border-red-500 text-red-500 hover:border-red-600 hover:text-red-600 focus:ring-red-500"
                   : "border-blue-500 text-blue-500 hover:border-blue-600 hover:text-blue-600 focus:ring-blue-500"
