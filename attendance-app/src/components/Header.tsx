@@ -21,6 +21,7 @@ export default function Header() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null); // Added ref for mobile menu
 
   const handleAddChild = () => router.push("/child/add");
 
@@ -57,7 +58,7 @@ export default function Header() {
     fetchUser();
   }, [router]);
 
-  // 데스크톱 풀다운 메뉴 외부 클릭 시 닫기
+  // Handle clicks outside desktop profile menu
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -65,6 +66,13 @@ export default function Header() {
         !profileMenuRef.current.contains(event.target as Node)
       ) {
         setIsProfileMenuOpen(false);
+      }
+      // Handle clicks outside mobile menu
+      if (
+        mobileMenuRef.current &&
+        !mobileMenuRef.current.contains(event.target as Node)
+      ) {
+        setIsMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -91,12 +99,12 @@ export default function Header() {
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
-    setIsProfileMenuOpen(false); // 모바일 메뉴 토글 시 프로필 메뉴 닫기
+    setIsProfileMenuOpen(false); // Close profile menu when toggling mobile menu
   };
 
   const toggleProfileMenu = () => {
     setIsProfileMenuOpen(!isProfileMenuOpen);
-    setIsMenuOpen(false); // 데스크톱 프로필 메뉴 토글 시 모바일 메뉴 닫기
+    setIsMenuOpen(false); // Close mobile menu when toggling profile menu
   };
 
   if (error) {
@@ -106,7 +114,7 @@ export default function Header() {
   return (
     <header className="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1 flex justify-between items-center">
-        {/* 로고/앱 이름 */}
+        {/* Logo/App Name */}
         <div className="flex items-center gap-4">
           <Link
             href="/dashboard"
@@ -120,7 +128,11 @@ export default function Header() {
             FullFace
           </Link>
           {isAuthenticated && user && (
-            <span className="text-sm bg-blue-700 text-white px-3 py-1 rounded-full">
+            <span
+              className="text-sm bg-blue-700 text-white px-3
+
+ py-1 rounded-full"
+            >
               ようこそ, {user.name}先生
             </span>
           )}
@@ -128,7 +140,7 @@ export default function Header() {
 
         {isAuthenticated && user && (
           <>
-            {/* 데스크톱 네비게이션 */}
+            {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
               <Link
                 href="/attendance"
@@ -176,7 +188,7 @@ export default function Header() {
                   <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-200 transition-all duration-300 group-hover:w-full"></span>
                 </Link>
               )}
-              {/* 데스크톱 프로필 메뉴 */}
+              {/* Desktop Profile Menu */}
               <div className="relative" ref={profileMenuRef}>
                 <button
                   onClick={toggleProfileMenu}
@@ -213,7 +225,7 @@ export default function Header() {
               </div>
             </nav>
 
-            {/* 모바일 햄버거 메뉴 아이콘 */}
+            {/* Mobile Hamburger Menu Icon */}
             <button
               className="md:hidden text-white text-4xl focus:outline-none focus:ring-2 focus:ring-blue-200 rounded-md p-2"
               onClick={toggleMenu}
@@ -226,10 +238,13 @@ export default function Header() {
         )}
       </div>
 
-      {/* 모바일 드롭다운 메뉴 */}
+      {/* Mobile Dropdown Menu */}
       {isMenuOpen && isAuthenticated && user && (
-        <div className="md:hidden bg-white text-gray-800 mt-4 mx-4 rounded-xl shadow-xl animate-slide-in">
-          <nav className="flex flex-col p-4 gap-4">
+        <div
+          ref={mobileMenuRef} // Added ref to mobile menu
+          className="md:hidden bg-white text-gray-800 mt-4 mx-4 rounded-xl shadow-xl animate-slide-in"
+        >
+          <nav className="flex flex-col p-4 gap-4 mb-6">
             <Link
               href="/attendance"
               className="text-center text-gray-800 hover:bg-blue-50 hover:text-blue-600 py-2 rounded-lg transition-colors duration-200"
