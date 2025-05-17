@@ -6,8 +6,8 @@ import { jwtDecode } from "jwt-decode";
 import { ChildrenSection } from "@/components/ChildrenSection";
 import Loading from "@/components/Loading";
 import Image from "next/image";
-import { Child } from "@/type/child";
-import { User } from "@/type/user";
+import { Child } from "@/types/child";
+import { User } from "@/types/user";
 
 type DecodedToken = {
   userId: string;

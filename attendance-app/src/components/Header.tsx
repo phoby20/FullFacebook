@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from "react";
 import { jwtDecode } from "jwt-decode";
 import Link from "next/link";
 import Image from "next/image";
-import { User } from "@/type/user";
+import { User } from "@/types/user";
 
 type DecodedToken = {
   userId: string;

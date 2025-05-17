@@ -1,4 +1,4 @@
-import { Child } from "@/type/child";
+import { Child } from "@/types/child";
 import { ChildCard } from "./ChildCard";
 import Image from "next/image";
 
