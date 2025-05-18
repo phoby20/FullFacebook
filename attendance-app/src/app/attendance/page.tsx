@@ -350,8 +350,11 @@ export default function AllAttendancePage() {
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-blue-400">
-              <th className="border-b border-gray-200 p-2 sticky left-0 bg-blue-400 min-w-[150px] rounded-tl-xl">
-                学生
+              <th className="flex flex-col border-b border-gray-200 p-2 sticky left-0 bg-blue-400 min-w-[150px] rounded-tl-xl">
+                <span>学生</span>
+                <span className="text-xs text-gray-100 mt-1">
+                  ({children.length}人)
+                </span>
               </th>
               {dateRange.map((date) => (
                 <th
@@ -370,7 +373,7 @@ export default function AllAttendancePage() {
                         .replace(/\s/g, "")
                         .slice(0, -1)}
                     </span>
-                    <span className="text-sm text-gray-100 mt-1">
+                    <span className="text-xs text-gray-100 mt-1">
                       ({getAttendanceCount(date)}人)
                     </span>
                   </div>
