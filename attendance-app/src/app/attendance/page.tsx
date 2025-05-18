@@ -1,4 +1,6 @@
+// app/attendance/page.tsx
 "use client";
+
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -10,7 +12,7 @@ import Loading from "@/components/Loading";
 
 type DecodedToken = {
   userId: string;
-  role: "superAdmin" | "admin" | "child";
+  role: "master" | "superAdmin" | "admin" | "child";
 };
 
 type Attendance = {
@@ -33,24 +35,23 @@ export default function AllAttendancePage() {
   const [startDate, setStartDate] = useState<Date | null>(() => {
     const date = new Date();
     date.setHours(0, 0, 0, 0); // KST 00:00
-    date.setDate(date.getDate() - 1); // 하루 전
-    return date;
+    return date; // 현재 날짜
   });
   const [endDate, setEndDate] = useState<Date | null>(() => {
     const date = new Date();
     date.setHours(0, 0, 0, 0); // KST 00:00
-    return date;
+    return date; // 현재 날짜
   });
-  const [message, setMessage] = useState("");
-  const [isFadingOut, setIsFadingOut] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [message, setMessage] = useState<string>("");
+  const [isFadingOut, setIsFadingOut] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [userId, setUserId] = useState<string>("");
   const [userRole, setUserRole] = useState<
-    "superAdmin" | "admin" | "child" | null
+    "master" | "superAdmin" | "admin" | "child" | null
   >(null);
 
   // 로컬 날짜 문자열 생성 (KST 기준 YYYY-MM-DD)
-  const getLocalDateString = (date: Date) => {
+  const getLocalDateString = (date: Date): string => {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
       2,
       "0"
@@ -74,18 +75,18 @@ export default function AllAttendancePage() {
     try {
       const child = children.find((c) => c.id === childId);
       if (!child) {
-        setMessage("学生が見つかりませんでした。");
+        setMessage("学生が見つかりません。");
         return;
       }
       const record = child.attendance.find(
         (a) =>
           new Date(a.date).toISOString().split("T")[0] ===
-          getLocalDateString(date) // 로컬 날짜로 비교
+          getLocalDateString(date)
       );
       const checked = !!record?.checkedById;
       const requestBody = {
         childId,
-        date: getLocalDateString(date), // 로컬 날짜 전송
+        date: getLocalDateString(date),
         action: checked ? "uncheck" : "check",
       };
 
@@ -118,7 +119,7 @@ export default function AllAttendancePage() {
               return child;
             })
           );
-          setMessage("サーバーに出席記録がなく、ローカル状態を更新しました。");
+          setMessage("サーバーに出席記録がありません。");
           await refreshAttendanceData();
           return;
         }
@@ -126,7 +127,7 @@ export default function AllAttendancePage() {
         throw new Error(`API request failed with status ${res.status}`);
       }
 
-      setMessage(data.message || "処理完了!");
+      setMessage(data.message || "出席処理が完了しました。");
       setChildren((prevChildren) => {
         const newChildren = prevChildren.map((child) => {
           if (child.id === childId) {
@@ -159,9 +160,9 @@ export default function AllAttendancePage() {
       });
 
       await refreshAttendanceData();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error updating attendance:", error);
-      setMessage("出席状態の更新に失敗しました。");
+      setMessage("出席処理に失敗しました。");
     } finally {
       setIsLoading(false);
     }
@@ -187,9 +188,9 @@ export default function AllAttendancePage() {
       } else {
         setChildren(data);
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Error refreshing attendance:", error);
-      setMessage("出席情報の更新に失敗しました。");
+      setMessage("出席データの取得に失敗しました。");
     }
     setIsLoading(false);
   };
@@ -208,7 +209,7 @@ export default function AllAttendancePage() {
       setUserId(decoded.userId);
       setUserRole(decoded.role);
       if (decoded.role === "child") {
-        setMessage("出席状況を確認する権限がありません。");
+        setMessage("このページは子供用ではありません。");
         setIsLoading(false);
         return;
       }
@@ -220,7 +221,7 @@ export default function AllAttendancePage() {
     refreshAttendanceData();
   }, [router, startDate, endDate]);
 
-  const getToken = () => {
+  const getToken = (): string => {
     return (
       document.cookie
         .split("; ")
@@ -229,13 +230,13 @@ export default function AllAttendancePage() {
     );
   };
 
-  const getDateRange = () => {
+  const getDateRange = (): Date[] => {
     if (!startDate || !endDate) return [];
-    const dates = [];
+    const dates: Date[] = [];
     const currentDate = new Date(startDate);
-    currentDate.setHours(0, 0, 0, 0); // 시작 날짜 시간 초기화
+    currentDate.setHours(0, 0, 0, 0);
     const end = new Date(endDate);
-    end.setHours(0, 0, 0, 0); // 종료 날짜 시간 초기화
+    end.setHours(0, 0, 0, 0);
     while (currentDate <= end) {
       dates.push(new Date(currentDate));
       currentDate.setDate(currentDate.getDate() + 1);
@@ -243,7 +244,7 @@ export default function AllAttendancePage() {
     return dates;
   };
 
-  const getAttendanceCount = (date: Date) => {
+  const getAttendanceCount = (date: Date): number => {
     return children.reduce((count, child) => {
       const hasAttendance = child.attendance.some(
         (a) =>
@@ -277,7 +278,7 @@ export default function AllAttendancePage() {
       {message && (
         <div
           className={`fixed bottom-4 right-4 max-w-sm p-4 rounded-lg shadow-md z-50 ${
-            message.includes("失敗")
+            message.includes("실패")
               ? "bg-red-100 text-red-700"
               : "bg-green-100 text-green-700"
           } ${isFadingOut ? "animate-fade-out" : "animate-fade-in"}`}
@@ -295,7 +296,7 @@ export default function AllAttendancePage() {
               htmlFor="startDate"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              スタート日
+              開始日
             </label>
             <DatePicker
               id="startDate"
@@ -309,11 +310,11 @@ export default function AllAttendancePage() {
                 }
               }}
               dateFormat="yyyy-MM-dd"
-              placeholderText="시작 날짜 선택"
+              placeholderText="開始日選択"
               locale={ko}
               maxDate={endDate || new Date()}
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-              aria-label="開始日を選択"
+              aria-label="開始日選択"
             />
           </div>
           <div className="flex-1">
@@ -321,7 +322,7 @@ export default function AllAttendancePage() {
               htmlFor="endDate"
               className="block text-sm font-medium text-gray-700 mb-2"
             >
-              エンド日
+              終了日
             </label>
             <DatePicker
               id="endDate"
@@ -335,11 +336,11 @@ export default function AllAttendancePage() {
                 }
               }}
               dateFormat="yyyy-MM-dd"
-              placeholderText="종료 날짜 선택"
+              placeholderText="終了日選択"
               locale={ko}
               maxDate={new Date()}
               className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-              aria-label="終了日を選択"
+              aria-label="終了日選択"
             />
           </div>
         </div>
@@ -390,7 +391,7 @@ export default function AllAttendancePage() {
                         width={48}
                         height={48}
                         src={child.photoPath}
-                        alt={`${child.name}の写真`}
+                        alt={`${child.name}の画像`}
                         className="w-12 h-12 object-cover rounded-full border-2 border-gray-200"
                       />
                     ) : (
@@ -398,7 +399,7 @@ export default function AllAttendancePage() {
                         width={48}
                         height={48}
                         src="/default_user.png"
-                        alt="기본 이미지"
+                        alt="基本画像"
                         className="w-12 h-12 object-cover rounded-full border-2 border-gray-200"
                       />
                     )}
@@ -466,7 +467,7 @@ export default function AllAttendancePage() {
           type="button"
           onClick={() => router.push("/dashboard")}
           className="cursor-pointer bg-gradient-to-r from-gray-500 to-gray-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-gray-600 hover:to-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-300"
-          aria-label="ダッシュボードに戻る"
+          aria-label="dashboardへ戻る"
         >
           戻る
         </button>
