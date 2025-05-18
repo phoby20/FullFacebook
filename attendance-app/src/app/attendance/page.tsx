@@ -195,6 +195,60 @@ export default function AllAttendancePage() {
     setIsLoading(false);
   };
 
+  // CSVダウンロード機能
+  const downloadCSV = () => {
+    if (!startDate || !endDate || children.length === 0) {
+      setMessage("データがありません。");
+      return;
+    }
+
+    const dateRange = getDateRange();
+    const headers = [
+      "学生名",
+      ...dateRange.map((date) => getLocalDateString(date)),
+    ];
+    const rows = children.map((child) => {
+      const row: string[] = [child.name];
+      dateRange.forEach((date) => {
+        const record = child.attendance.find(
+          (a) =>
+            new Date(a.date).toISOString().split("T")[0] ===
+            getLocalDateString(date)
+        );
+        row.push(
+          record?.checkedById ? "出席済み" : record ? "データなし" : "欠席"
+        );
+      });
+      return row;
+    });
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+    ].join("\n");
+
+    // UTF-8 BOM 추가 (Excel 일본어 깨짐 방지)
+    const bom = "\uFEFF";
+    const blob = new Blob([bom + csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `attendance_${getLocalDateString(startDate)}_${getLocalDateString(
+        endDate
+      )}.csv`
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    setMessage("CSVをダウンロードしました。");
+  };
+
   useEffect(() => {
     const token = document.cookie
       .split("; ")
@@ -278,7 +332,7 @@ export default function AllAttendancePage() {
       {message && (
         <div
           className={`fixed bottom-4 right-4 max-w-sm p-4 rounded-lg shadow-md z-50 ${
-            message.includes("실패")
+            message.includes("失敗")
               ? "bg-red-100 text-red-700"
               : "bg-green-100 text-green-700"
           } ${isFadingOut ? "animate-fade-out" : "animate-fade-in"}`}
@@ -344,6 +398,17 @@ export default function AllAttendancePage() {
             />
           </div>
         </div>
+      </div>
+
+      <div className="flex justify-end mb-4">
+        <button
+          type="button"
+          onClick={downloadCSV}
+          className="cursor-pointer bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300"
+          aria-label="CSVをダウンロード"
+        >
+          CSVダウンロード
+        </button>
       </div>
 
       <div className="bg-white rounded-xl shadow-xl overflow-x-auto">
@@ -465,7 +530,7 @@ export default function AllAttendancePage() {
         </table>
       </div>
 
-      <div className="mt-6">
+      <div className="mt-6 flex gap-4">
         <button
           type="button"
           onClick={() => router.push("/dashboard")}
