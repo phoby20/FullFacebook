@@ -1,4 +1,3 @@
-// schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -6,18 +5,6 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-enum Role {
-  master
-  superAdmin
-  admin
-  child
-}
-
-enum Gender {
-  male
-  female
 }
 
 model User {
@@ -32,16 +19,16 @@ model User {
   lineId           String?
   cacaoTalkId      String?
   role             Role
-  children         Child[]            @relation("ManagedChildren")
-  assignedChildren Child[]            @relation("AdminChildren")
-  attendance       Attendance[]       @relation("Checker")
-  organizations    UserOrganization[] // 다대다 관계: 단체 소속
-  groups           UserGroup[]        // 다대다 관계: 그룹 소속
   createdAt        DateTime           @default(now())
+  attendance       Attendance[]       @relation("Checker")
+  assignedChildren Child[]            @relation("AdminChildren")
+  children         Child[]            @relation("ManagedChildren")
+  groups           UserGroup[]
+  organizations    UserOrganization[]
 }
 
 model Child {
-  id              String            @id @default(cuid())
+  id              String       @id @default(cuid())
   name            String
   birthDay        DateTime
   photoPath       String
@@ -50,73 +37,68 @@ model Child {
   lineId          String?
   cacaoTalkId     String?
   managerId       String
-  manager         User              @relation("ManagedChildren", fields: [managerId], references: [id])
   assignedAdminId String?
-  assignedAdmin   User?             @relation("AdminChildren", fields: [assignedAdminId], references: [id])
+  createdAt       DateTime     @default(now())
   attendance      Attendance[]
-  dutyAssignments DutyAssignment[]  @relation("ChildDuties") // 추가: 당번 지정
-  createdAt       DateTime          @default(now())
+  assignedAdmin   User?        @relation("AdminChildren", fields: [assignedAdminId], references: [id])
+  manager         User         @relation("ManagedChildren", fields: [managerId], references: [id])
 }
 
 model Attendance {
   id          String   @id @default(cuid())
   childId     String
-  child       Child    @relation(fields: [childId], references: [id])
   checkedById String
-  checkedBy   User     @relation("Checker", fields: [checkedById], references: [id])
   date        DateTime
   createdAt   DateTime @default(now())
+  checkedBy   User     @relation("Checker", fields: [checkedById], references: [id])
+  child       Child    @relation(fields: [childId], references: [id])
 }
 
 model Organization {
-  id          String             @id @default(cuid())
-  name        String
-  createdAt   DateTime           @default(now())
-  users       UserOrganization[] // 다대다 관계: 사용자
-  groups      Group[]            // 일대다 관계: 단체 내 그룹
+  id        String             @id @default(cuid())
+  name      String
+  createdAt DateTime           @default(now())
+  groups    Group[]
+  users     UserOrganization[]
 }
 
 model Group {
-  id             String             @id @default(cuid())
+  id             String       @id @default(cuid())
   name           String
   organizationId String
-  organization   Organization       @relation(fields: [organizationId], references: [id])
-  users          UserGroup[]        // 다대다 관계: 사용자
-  createdAt      DateTime           @default(now())
+  createdAt      DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  users          UserGroup[]
 }
 
 model UserOrganization {
   userId         String
   organizationId String
-  user           User         @relation(fields: [userId], references: [id])
-  organization   Organization @relation(fields: [organizationId], references: [id])
   assignedAt     DateTime     @default(now())
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+
   @@id([userId, organizationId])
 }
 
 model UserGroup {
   userId     String
   groupId    String
-  user       User       @relation(fields: [userId], references: [id])
-  group      Group      @relation(fields: [groupId], references: [id])
-  assignedAt DateTime   @default(now())
+  assignedAt DateTime @default(now())
+  group      Group    @relation(fields: [groupId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+
   @@id([userId, groupId])
 }
 
-model Duty {
-  id               String            @id @default(cuid())
-  name             String            @unique // 예: "대표기도", "헌금기도"
-  dutyAssignments  DutyAssignment[]  @relation("DutyAssignments") // 당번 지정과의 관계
-  createdAt        DateTime          @default(now())
+enum Role {
+  master
+  superAdmin
+  admin
+  child
 }
 
-model DutyAssignment {
-  id          String   @id @default(cuid())
-  dutyId      String
-  duty        Duty     @relation("DutyAssignments", fields: [dutyId], references: [id])
-  childId     String
-  child       Child    @relation("ChildDuties", fields: [childId], references: [id])
-  date        DateTime
-  createdAt   DateTime @default(now())
-  @@unique([dutyId, childId, date]) // 동일 당번, 학생, 날짜 중복 방지
+enum Gender {
+  male
+  female
 }
