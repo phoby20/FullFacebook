@@ -10,38 +10,39 @@
  * 7. 복원 후, 데이터베이스의 데이터가 올바르게 복원되었는지 확인합니다.
  * 8. 데이터베이스에 문제가 발생한 경우, `backup.json` 파일을 사용하여 데이터를 복원할 수 있습니다.
  */
-const { PrismaClient } = require("@prisma/client");
-const fs = require("fs/promises");
 
-const prisma = new PrismaClient();
+// const { PrismaClient } = require("@prisma/client");
+// const fs = require("fs/promises");
 
-async function exportData() {
-  try {
-    const users = await prisma.user.findMany();
-    const children = await prisma.child.findMany();
-    const attendances = await prisma.attendance.findMany();
-    const organizations = await prisma.organization.findMany();
-    const groups = await prisma.group.findMany();
-    const userOrganizations = await prisma.userOrganization.findMany();
-    const userGroups = await prisma.userGroup.findMany();
+// const prisma = new PrismaClient();
 
-    const data = {
-      users,
-      children,
-      attendances,
-      organizations,
-      groups,
-      userOrganizations,
-      userGroups,
-    };
+// async function exportData() {
+//   try {
+//     const users = await prisma.user.findMany();
+//     const children = await prisma.child.findMany();
+//     const attendances = await prisma.attendance.findMany();
+//     const organizations = await prisma.organization.findMany();
+//     const groups = await prisma.group.findMany();
+//     const userOrganizations = await prisma.userOrganization.findMany();
+//     const userGroups = await prisma.userGroup.findMany();
 
-    await fs.writeFile("backup.json", JSON.stringify(data, null, 2));
-    console.log("데이터가 backup.json으로 내보내졌습니다.");
-  } catch (error) {
-    console.error("데이터 내보내기 실패:", error);
-  } finally {
-    await prisma.$disconnect();
-  }
-}
+//     const data = {
+//       users,
+//       children,
+//       attendances,
+//       organizations,
+//       groups,
+//       userOrganizations,
+//       userGroups,
+//     };
 
-exportData();
+//     await fs.writeFile("backup.json", JSON.stringify(data, null, 2));
+//     console.log("데이터가 backup.json으로 내보내졌습니다.");
+//   } catch (error) {
+//     console.error("데이터 내보내기 실패:", error);
+//   } finally {
+//     await prisma.$disconnect();
+//   }
+// }
+
+// exportData();
