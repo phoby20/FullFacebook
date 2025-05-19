@@ -35,6 +35,7 @@ model User {
   attendance       Attendance[]       @relation("Checker")
   assignedChildren Child[]            @relation("AdminChildren")
   children         Child[]            @relation("ManagedChildren")
+  assignedDuties   DutyAssignment[] @relation("AssignedBy") // 추가: 당번 지정 관계
   groups           UserGroup[]
   organizations    UserOrganization[]
 }
@@ -110,11 +111,13 @@ model Duty {
 }
 
 model DutyAssignment {
-  id        String   @id @default(uuid())
-  childId   String
-  child     Child    @relation(fields: [childId], references: [id])
-  dutyId    String
-  duty      Duty     @relation(fields: [dutyId], references: [id])
-  date      DateTime // 당번 날짜
-  createdAt DateTime @default(now())
+  id            String   @id @default(uuid())
+  childId       String
+  child         Child    @relation(fields: [childId], references: [id])
+  dutyId        String
+  duty          Duty     @relation(fields: [dutyId], references: [id])
+  date          DateTime
+  assignedById  String
+  assignedBy    User     @relation("AssignedBy", fields: [assignedById], references: [id])
+  createdAt     DateTime @default(now())
 }
