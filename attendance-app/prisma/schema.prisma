@@ -1,6 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
+// schema.prisma
 generator client {
   provider = "prisma-client-js"
 }
@@ -43,7 +41,7 @@ model User {
 }
 
 model Child {
-  id              String       @id @default(cuid())
+  id              String            @id @default(cuid())
   name            String
   birthDay        DateTime
   photoPath       String
@@ -52,11 +50,12 @@ model Child {
   lineId          String?
   cacaoTalkId     String?
   managerId       String
-  manager         User         @relation("ManagedChildren", fields: [managerId], references: [id])
+  manager         User              @relation("ManagedChildren", fields: [managerId], references: [id])
   assignedAdminId String?
-  assignedAdmin   User?        @relation("AdminChildren", fields: [assignedAdminId], references: [id])
+  assignedAdmin   User?             @relation("AdminChildren", fields: [assignedAdminId], references: [id])
   attendance      Attendance[]
-  createdAt       DateTime     @default(now())
+  dutyAssignments DutyAssignment[]  @relation("ChildDuties") // 추가: 당번 지정
+  createdAt       DateTime          @default(now())
 }
 
 model Attendance {
@@ -66,13 +65,13 @@ model Attendance {
   checkedById String
   checkedBy   User     @relation("Checker", fields: [checkedById], references: [id])
   date        DateTime
-  createdAt   DateTime @default(now()) // 새 필드 추가
+  createdAt   DateTime @default(now())
 }
 
 model Organization {
   id          String             @id @default(cuid())
   name        String
-  createdAt   DateTime           @default(now()) // 이미 존재
+  createdAt   DateTime           @default(now())
   users       UserOrganization[] // 다대다 관계: 사용자
   groups      Group[]            // 일대다 관계: 단체 내 그룹
 }
@@ -86,7 +85,6 @@ model Group {
   createdAt      DateTime           @default(now())
 }
 
-// User와 Organization 간 다대다 관계를 위한 연결 테이블
 model UserOrganization {
   userId         String
   organizationId String
@@ -96,7 +94,6 @@ model UserOrganization {
   @@id([userId, organizationId])
 }
 
-// User와 Group 간 다대다 관계를 위한 연결 테이블
 model UserGroup {
   userId     String
   groupId    String
@@ -104,4 +101,22 @@ model UserGroup {
   group      Group      @relation(fields: [groupId], references: [id])
   assignedAt DateTime   @default(now())
   @@id([userId, groupId])
+}
+
+model Duty {
+  id               String            @id @default(cuid())
+  name             String            @unique // 예: "대표기도", "헌금기도"
+  dutyAssignments  DutyAssignment[]  @relation("DutyAssignments") // 당번 지정과의 관계
+  createdAt        DateTime          @default(now())
+}
+
+model DutyAssignment {
+  id          String   @id @default(cuid())
+  dutyId      String
+  duty        Duty     @relation("DutyAssignments", fields: [dutyId], references: [id])
+  childId     String
+  child       Child    @relation("ChildDuties", fields: [childId], references: [id])
+  date        DateTime
+  createdAt   DateTime @default(now())
+  @@unique([dutyId, childId, date]) // 동일 당번, 학생, 날짜 중복 방지
 }
