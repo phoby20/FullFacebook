@@ -7,6 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  master
+  superAdmin
+  admin
+  child
+}
+
+enum Gender {
+  male
+  female
+}
+
 model User {
   id               String             @id @default(cuid())
   name             String
@@ -28,7 +40,7 @@ model User {
 }
 
 model Child {
-  id              String       @id @default(cuid())
+  id              String            @id @default(cuid())
   name            String
   birthDay        DateTime
   photoPath       String
@@ -38,10 +50,11 @@ model Child {
   cacaoTalkId     String?
   managerId       String
   assignedAdminId String?
-  createdAt       DateTime     @default(now())
+  createdAt       DateTime          @default(now())
   attendance      Attendance[]
-  assignedAdmin   User?        @relation("AdminChildren", fields: [assignedAdminId], references: [id])
-  manager         User         @relation("ManagedChildren", fields: [managerId], references: [id])
+  assignedAdmin   User?             @relation("AdminChildren", fields: [assignedAdminId], references: [id])
+  manager         User              @relation("ManagedChildren", fields: [managerId], references: [id])
+  dutyAssignments DutyAssignment[]  // 추가: 당번 지정 관계
 }
 
 model Attendance {
@@ -77,7 +90,6 @@ model UserOrganization {
   assignedAt     DateTime     @default(now())
   organization   Organization @relation(fields: [organizationId], references: [id])
   user           User         @relation(fields: [userId], references: [id])
-
   @@id([userId, organizationId])
 }
 
@@ -87,18 +99,22 @@ model UserGroup {
   assignedAt DateTime @default(now())
   group      Group    @relation(fields: [groupId], references: [id])
   user       User     @relation(fields: [userId], references: [id])
-
   @@id([userId, groupId])
 }
 
-enum Role {
-  master
-  superAdmin
-  admin
-  child
+model Duty {
+  id              String           @id @default(uuid())
+  name            String           // 예: "대표기도", "헌금기도"
+  dutyAssignments DutyAssignment[] // 당번 지정 관계
+  createdAt       DateTime         @default(now())
 }
 
-enum Gender {
-  male
-  female
+model DutyAssignment {
+  id        String   @id @default(uuid())
+  childId   String
+  child     Child    @relation(fields: [childId], references: [id])
+  dutyId    String
+  duty      Duty     @relation(fields: [dutyId], references: [id])
+  date      DateTime // 당번 날짜
+  createdAt DateTime @default(now())
 }
