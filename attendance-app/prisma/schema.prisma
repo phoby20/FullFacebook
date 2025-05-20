@@ -117,7 +117,7 @@ model DutyAssignment {
   dutyId        String
   duty          Duty     @relation(fields: [dutyId], references: [id])
   date          DateTime
-  assignedById  String
-  assignedBy    User     @relation("AssignedBy", fields: [assignedById], references: [id])
+  assignedById  String?
+  assignedBy    User?     @relation("AssignedBy", fields: [assignedById], references: [id])
   createdAt     DateTime @default(now())
 }
