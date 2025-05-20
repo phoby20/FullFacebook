@@ -1,3 +1,4 @@
+// app/dashboard/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -15,6 +16,13 @@ type DecodedToken = {
   iat: number;
 };
 
+type DutyAssignment = {
+  id: string;
+  duty: { id: string; name: string };
+  child: { id: string; name: string; birthDay: string };
+  date: string;
+};
+
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [children, setChildren] = useState<Child[]>([]);
@@ -28,7 +36,37 @@ export default function Dashboard() {
   const [error, setError] = useState<string | null>(null);
   const [thisMonthBirthdays, setThisMonthBirthdays] = useState<string[]>([]);
   const [nextMonthBirthdays, setNextMonthBirthdays] = useState<string[]>([]);
+  const [thisWeekDuties, setThisWeekDuties] = useState<DutyAssignment[]>([]);
+  const [nextWeekDuties, setNextWeekDuties] = useState<DutyAssignment[]>([]);
+  const [isOpen, setIsOpen] = useState(true); // Default: accordion open
   const router = useRouter();
+
+  // 주간 범위 계산 함수
+  const getWeekRange = (baseDate: Date) => {
+    const startOfWeek = new Date(baseDate);
+    startOfWeek.setDate(baseDate.getDate() - baseDate.getDay() + 1); // 월요일
+    startOfWeek.setHours(0, 0, 0, 0);
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6); // 일요일
+    endOfWeek.setHours(23, 59, 59, 999);
+
+    return { start: startOfWeek, end: endOfWeek };
+  };
+
+  // 날짜 범위 포맷팅 함수
+  const formatWeekRange = (start: Date, end: Date): string => {
+    const endFormatted = end.toLocaleDateString("ja-JP", {
+      month: "numeric",
+      day: "numeric",
+    });
+    return `${endFormatted}`;
+  };
+
+  // 아코디언 토글 함수
+  const toggleAccordion = () => {
+    setIsOpen((prev) => !prev);
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -88,18 +126,51 @@ export default function Dashboard() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
+        // 학생 목록
         const childRes = await fetch("/api/child/list", {
           credentials: "include",
+          headers: { Authorization: `Bearer ${getToken()}` },
         });
+        if (!childRes.ok) throw new Error("학생 목록 가져오기 실패");
         const childData = await childRes.json();
         setChildren(childData);
         childData.forEach((child: Child) => checkAttendanceStatus(child.id));
 
+        // 관리자 목록
         const adminRes = await fetch("/api/admin/list", {
           credentials: "include",
+          headers: { Authorization: `Bearer ${getToken()}` },
         });
+        if (!adminRes.ok) throw new Error("관리자 목록 가져오기 실패");
         const adminData = await adminRes.json();
         setAdmins(adminData);
+
+        // 당번 목록
+        const dutyRes = await fetch("/api/duty-assignments/assign", {
+          credentials: "include",
+          headers: { Authorization: `Bearer ${getToken()}` },
+        });
+        if (!dutyRes.ok) throw new Error("당번 목록 가져오기 실패");
+        const dutyData = await dutyRes.json();
+
+        // 이번 주와 다음 주 당번 필터링
+        const now = new Date();
+        const thisWeek = getWeekRange(now);
+        const nextWeek = getWeekRange(
+          new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+        );
+
+        const thisWeekDuties = dutyData.filter((duty: DutyAssignment) => {
+          const dutyDate = new Date(duty.date);
+          return dutyDate >= thisWeek.start && dutyDate <= thisWeek.end;
+        });
+        const nextWeekDuties = dutyData.filter((duty: DutyAssignment) => {
+          const dutyDate = new Date(duty.date);
+          return dutyDate >= nextWeek.start && dutyDate <= nextWeek.end;
+        });
+
+        setThisWeekDuties(thisWeekDuties);
+        setNextWeekDuties(nextWeekDuties);
 
         // 생일 데이터 처리
         processBirthdays(adminData, childData);
@@ -113,6 +184,16 @@ export default function Dashboard() {
 
     fetchData();
   }, [user]);
+
+  // 토큰 가져오기 함수
+  const getToken = (): string => {
+    return (
+      document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("token="))
+        ?.split("=")[1] || ""
+    );
+  };
 
   // 생일 데이터 처리 함수
   const processBirthdays = (admins: User[], children: Child[]) => {
@@ -166,17 +247,15 @@ export default function Dashboard() {
   }, [message]);
 
   const checkAttendanceStatus = async (childId: string) => {
-    setIsLoading(true);
     try {
       const res = await fetch(`/api/attendance/status?childId=${childId}`, {
         credentials: "include",
+        headers: { Authorization: `Bearer ${getToken()}` },
       });
       const data = await res.json();
       setAttendanceMap((prev) => ({ ...prev, [childId]: data.checked }));
     } catch (err) {
       console.error("出欠確認エラー:", err);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -190,7 +269,10 @@ export default function Dashboard() {
 
       const res = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${getToken()}`,
+        },
         credentials: "include",
         body: JSON.stringify({ childId }),
       });
@@ -309,51 +391,135 @@ export default function Dashboard() {
     return <p className="p-4 text-red-500">{error}</p>;
   }
 
+  // 이번 주와 다음 주 날짜 범위 계산
+  const now = new Date();
+  const thisWeek = getWeekRange(now);
+  const nextWeek = getWeekRange(
+    new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+  );
+  const thisWeekRange = formatWeekRange(thisWeek.start, thisWeek.end);
+  const nextWeekRange = formatWeekRange(nextWeek.start, nextWeek.end);
+
   return (
     <div>
-      {/* 생일 섹션 */}
+      {/* 생일 및 당번 섹션 (단일 아코디언) */}
       <div
-        className="bg-white rounded-lg shadow-md p-2 pl-3 text-sm"
-        aria-label="今月と来月の誕生日リスト"
+        className="bg-white rounded-lg shadow-md text-xs"
+        aria-label="お知らせ"
       >
-        <div className="space-y-2">
-          <div className="flex flex-col gap-1">
-            <h3 className="font-medium text-gray-700">
-              🎉 今月の誕生日 ({thisMonthBirthdays.length}人)
-            </h3>
-            {thisMonthBirthdays.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {thisMonthBirthdays.map((name, index) => (
-                  <span
-                    key={index}
-                    className=" text-gray-500 bg-gray-200 rounded-full px-2"
-                  >
-                    {name}
-                  </span>
-                ))}
+        <div className="border-b border-gray-200">
+          <button
+            type="button"
+            className="w-full bg-red-200 pl-3 pr-3 flex justify-between items-center py-2 text-left font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            onClick={toggleAccordion}
+            aria-expanded={isOpen}
+            aria-controls="accordion-content"
+          >
+            <span className="text-sm">📅 お知らせ</span>
+            <svg
+              className={`w-5 h-5 transform transition-transform duration-200 ${
+                isOpen ? "rotate-180" : ""
+              }`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          </button>
+          <div
+            id="accordion-content"
+            className={`overflow-hidden pl-3 transition-all duration-200 ${
+              isOpen ? "max-h-[1000px] opacity-100 py-2" : "max-h-0 opacity-0"
+            }`}
+          >
+            <div className="space-y-2">
+              {/* 생일 섹션 */}
+              <div className="flex flex-col gap-1">
+                <h3 className="font-medium text-gray-700">
+                  🎉 今月の誕生日 ({thisMonthBirthdays.length}人)
+                </h3>
+                {thisMonthBirthdays.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {thisMonthBirthdays.map((name, index) => (
+                      <span
+                        key={index}
+                        className="text-gray-500 bg-gray-200 rounded-full px-2"
+                      >
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-gray-500">今月の誕生日はありません</p>
+                )}
               </div>
-            ) : (
-              <p className="mt-2 text-gray-500">今月の誕生日はありません</p>
-            )}
-          </div>
-          <div className="flex flex-col gap-1">
-            <h3 className="font-medium text-gray-700">
-              👏 来月の誕生日 ({nextMonthBirthdays.length}人)
-            </h3>
-            {nextMonthBirthdays.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {nextMonthBirthdays.map((name, index) => (
-                  <span
-                    key={index}
-                    className=" text-gray-500 bg-gray-200 rounded-full px-2"
-                  >
-                    {name}
-                  </span>
-                ))}
+              <div className="flex flex-col gap-1">
+                <h3 className="font-medium text-gray-700">
+                  👏 来月の誕生日 ({nextMonthBirthdays.length}人)
+                </h3>
+                {nextMonthBirthdays.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {nextMonthBirthdays.map((name, index) => (
+                      <span
+                        key={index}
+                        className="text-gray-500 bg-gray-200 rounded-full px-2"
+                      >
+                        {name}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-gray-500">来月の誕生日はありません</p>
+                )}
               </div>
-            ) : (
-              <p className="mt-2 text-gray-500">来月の誕生日はありません</p>
-            )}
+              {/* 이번 주 당번 섹션 */}
+              <div className="flex flex-col gap-1">
+                <h3 className="font-medium text-gray-700">
+                  🔔 今週の当番 ({thisWeekRange})
+                </h3>
+                {thisWeekDuties.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {thisWeekDuties.map((duty, index) => (
+                      <span
+                        key={index}
+                        className="text-gray-500 bg-gray-200 rounded-full px-2"
+                      >
+                        {duty.duty.name} - {duty.child.name}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-gray-500">今週の当番はありません</p>
+                )}
+              </div>
+              {/* 다음 주 당번 섹션 */}
+              <div className="flex flex-col gap-1">
+                <h3 className="font-medium text-gray-700">
+                  🔔 来週の当番 ({nextWeekRange})
+                </h3>
+                {nextWeekDuties.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {nextWeekDuties.map((duty, index) => (
+                      <span
+                        key={index}
+                        className="text-gray-500 bg-gray-200 rounded-full px-2"
+                      >
+                        {duty.duty.name} - {duty.child.name}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-gray-500">来週の当番はありません</p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>

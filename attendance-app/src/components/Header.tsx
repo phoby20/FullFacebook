@@ -1,3 +1,4 @@
+// components/Header.tsx
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -21,9 +22,13 @@ export default function Header() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
-  const mobileMenuRef = useRef<HTMLDivElement>(null); // Added ref for mobile menu
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const hamburgerButtonRef = useRef<HTMLButtonElement>(null); // Added ref for hamburger button
 
-  const handleAddChild = () => router.push("/child/add");
+  const handleAddChild = () => {
+    setIsMenuOpen(false); // Close mobile menu
+    router.push("/child/add");
+  };
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -58,16 +63,24 @@ export default function Header() {
     fetchUser();
   }, [router]);
 
-  // Handle clicks outside desktop profile menu
+  // Handle clicks outside menus
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // Ignore clicks on hamburger button
+      if (
+        hamburgerButtonRef.current &&
+        hamburgerButtonRef.current.contains(event.target as Node)
+      ) {
+        return;
+      }
+      // Close profile menu if clicked outside
       if (
         profileMenuRef.current &&
         !profileMenuRef.current.contains(event.target as Node)
       ) {
         setIsProfileMenuOpen(false);
       }
-      // Handle clicks outside mobile menu
+      // Close mobile menu if clicked outside
       if (
         mobileMenuRef.current &&
         !mobileMenuRef.current.contains(event.target as Node)
@@ -93,18 +106,23 @@ export default function Header() {
     if (user) {
       router.push(`/users/${user.id}/edit`);
       setIsProfileMenuOpen(false);
-      setIsMenuOpen(false);
+      setIsMenuOpen(false); // Close mobile menu
     }
   };
 
-  const toggleMenu = () => {
+  const toggleMenu = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent event bubbling to handleClickOutside
     setIsMenuOpen(!isMenuOpen);
-    setIsProfileMenuOpen(false); // Close profile menu when toggling mobile menu
+    setIsProfileMenuOpen(false); // Close profile menu
   };
 
   const toggleProfileMenu = () => {
     setIsProfileMenuOpen(!isProfileMenuOpen);
-    setIsMenuOpen(false); // Close mobile menu when toggling profile menu
+    setIsMenuOpen(false); // Close mobile menu
+  };
+
+  const closeMobileMenu = () => {
+    setIsMenuOpen(false); // Close mobile menu
   };
 
   if (error) {
@@ -113,26 +131,19 @@ export default function Header() {
 
   return (
     <header className="bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-1 flex justify-between items-center">
+      <div className="px-4 sm:px-6 lg:px-8 py-1 flex justify-between items-center">
         {/* Logo/App Name */}
         <div className="flex items-center gap-4">
           <Link
             href="/dashboard"
             className="text-2xl font-bold tracking-tight hover:text-blue-200 transition-colors duration-300"
             aria-label="ダッシュボードへ"
-            onClick={() => {
-              setIsMenuOpen(false);
-              setIsProfileMenuOpen(false);
-            }}
+            onClick={closeMobileMenu}
           >
             FullFace
           </Link>
           {isAuthenticated && user && (
-            <span
-              className="text-sm bg-blue-700 text-white px-3
-
- py-1 rounded-full"
-            >
+            <span className="text-sm bg-blue-700 text-white px-3 py-1 rounded-full">
               ようこそ, {user.name}先生
             </span>
           )}
@@ -156,6 +167,14 @@ export default function Header() {
                 aria-label="新規学生登録"
               >
                 新規学生登録
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-200 transition-all duration-300 group-hover:w-full"></span>
+              </Link>
+              <Link
+                href="/duty"
+                className="relative text-white hover:text-blue-200 transition-colors duration-300 group"
+                aria-label="当番管理"
+              >
+                当番管理
                 <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-200 transition-all duration-300 group-hover:w-full"></span>
               </Link>
               {user.role === "superAdmin" && (
@@ -227,6 +246,7 @@ export default function Header() {
 
             {/* Mobile Hamburger Menu Icon */}
             <button
+              ref={hamburgerButtonRef} // Added ref
               className="md:hidden text-white text-4xl focus:outline-none focus:ring-2 focus:ring-blue-200 rounded-md p-2"
               onClick={toggleMenu}
               aria-label={isMenuOpen ? "メニューを閉じる" : "メニューを開く"}
@@ -241,23 +261,32 @@ export default function Header() {
       {/* Mobile Dropdown Menu */}
       {isMenuOpen && isAuthenticated && user && (
         <div
-          ref={mobileMenuRef} // Added ref to mobile menu
+          ref={mobileMenuRef}
           className="md:hidden bg-white text-gray-800 mt-4 mx-4 rounded-xl shadow-xl animate-slide-in"
+          onClick={(e) => e.stopPropagation()} // Prevent clicks inside menu from closing it
         >
           <nav className="flex flex-col p-4 gap-4 mb-6">
             <Link
               href="/attendance"
               className="text-center text-gray-800 hover:bg-blue-50 hover:text-blue-600 py-2 rounded-lg transition-colors duration-200"
-              onClick={() => setIsMenuOpen(false)}
+              onClick={closeMobileMenu}
               aria-label="出席状況ページへ"
             >
               出席現状
+            </Link>
+            <Link
+              href="/duty"
+              className="text-center text-gray-800 hover:bg-blue-50 hover:text-blue-600 py-2 rounded-lg transition-colors duration-200"
+              onClick={closeMobileMenu} // Added
+              aria-label="当番管理"
+            >
+              当番管理
             </Link>
             {user.role === "superAdmin" && (
               <Link
                 href="/superadmin/assign"
                 className="text-center text-gray-800 hover:bg-blue-50 hover:text-blue-600 py-2 rounded-lg transition-colors duration-200"
-                onClick={() => setIsMenuOpen(false)}
+                onClick={closeMobileMenu}
                 aria-label="クラス設定ページへ"
               >
                 クラス設定
@@ -267,7 +296,7 @@ export default function Header() {
               <Link
                 href="/master/assign-organization"
                 className="text-center text-gray-800 hover:bg-blue-50 hover:text-blue-600 py-2 rounded-lg transition-colors duration-200"
-                onClick={() => setIsMenuOpen(false)}
+                onClick={closeMobileMenu}
                 aria-label="団体指定ページへ"
               >
                 団体指定
@@ -277,7 +306,7 @@ export default function Header() {
               <Link
                 href="/superadmin/assign-group"
                 className="text-center text-gray-800 hover:bg-blue-50 hover:text-blue-600 py-2 rounded-lg transition-colors duration-200"
-                onClick={() => setIsMenuOpen(false)}
+                onClick={closeMobileMenu}
                 aria-label="グループ指定ページへ"
               >
                 グループ指定
@@ -300,7 +329,7 @@ export default function Header() {
             <button
               onClick={() => {
                 handleLogout();
-                setIsMenuOpen(false);
+                closeMobileMenu();
               }}
               className="text-center text-red-600 hover:bg-red-50 py-2 rounded-lg transition-colors duration-200"
               aria-label="ログアウト"

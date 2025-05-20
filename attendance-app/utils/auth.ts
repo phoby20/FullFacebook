@@ -5,10 +5,15 @@ const JWT_SECRET = process.env.JWT_SECRET || "";
 
 type TokenPayload = {
   userId: string;
-  role: "superAdmin" | "admin";
+  role: "master" | "superAdmin" | "admin" | "child";
   email: string;
 };
 
+/**
+ * Get the user from the token in the request cookies
+ * @param req
+ * @returns
+ */
 export async function getTokenUser(
   req: NextApiRequest
 ): Promise<TokenPayload | null> {
