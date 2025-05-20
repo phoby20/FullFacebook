@@ -16,7 +16,7 @@
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/client": "^6.7.0",
+    "@prisma/client": "^6.8.2",
     "@vercel/blob": "^1.0.1",
     "bcryptjs": "^3.0.2",
     "cookie": "^1.0.2",
@@ -40,7 +40,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.1",
-    "prisma": "^6.7.0",
+    "prisma": "^6.8.2",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "typescript": "^5"
