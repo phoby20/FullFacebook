@@ -393,6 +393,7 @@ export default function Dashboard() {
 
   // 이번 주와 다음 주 날짜 범위 계산
   const now = new Date();
+  now.setDate(now.getDate() - 2); // 현재 날짜에서 2일 전으로 설정
   const thisWeek = getWeekRange(now);
   const nextWeek = getWeekRange(
     new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)

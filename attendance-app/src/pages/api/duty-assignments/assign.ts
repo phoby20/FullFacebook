@@ -17,7 +17,15 @@ export default async function handler(
   if (req.method === "GET") {
     try {
       console.log("Fetching duty assignments...");
+      // 현재 날짜에서 1주 전 날짜 계산
+      const twoWeeksAgo = new Date();
+      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 7);
       const assignments = await prisma.dutyAssignment.findMany({
+        where: {
+          date: {
+            gte: twoWeeksAgo, // 2주 전 이후 데이터만 조회
+          },
+        },
         include: {
           duty: true,
           child: { select: { id: true, name: true, birthDay: true } },
