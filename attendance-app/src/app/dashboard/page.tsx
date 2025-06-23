@@ -9,6 +9,7 @@ import Loading from "@/components/Loading";
 import Image from "next/image";
 import { Child } from "@/types/child";
 import { User } from "@/types/user";
+import { formatInTimeZone } from "date-fns-tz";
 
 type DecodedToken = {
   userId: string;
@@ -41,22 +42,26 @@ export default function Dashboard() {
   const [isOpen, setIsOpen] = useState(true); // Default: accordion open
   const router = useRouter();
 
+  const jstTimeZone = "Asia/Tokyo";
+  const todayJst = new Date(
+    formatInTimeZone(new Date(), jstTimeZone, "yyyy-MM-dd'T00:00:00.000Z")
+  );
+
   // 주간 범위 계산 함수
   const getWeekRange = (baseDate: Date) => {
     const startOfWeek = new Date(baseDate);
-    startOfWeek.setDate(baseDate.getDate() - baseDate.getDay() + 1); // 월요일
+    startOfWeek.setDate(baseDate.getDate() - baseDate.getDay());
     startOfWeek.setHours(0, 0, 0, 0);
-
     const endOfWeek = new Date(startOfWeek);
-    endOfWeek.setDate(startOfWeek.getDate() + 6); // 일요일
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
     endOfWeek.setHours(23, 59, 59, 999);
 
     return { start: startOfWeek, end: endOfWeek };
   };
 
   // 날짜 범위 포맷팅 함수
-  const formatWeekRange = (start: Date, end: Date): string => {
-    const endFormatted = end.toLocaleDateString("ja-JP", {
+  const formatWeekRange = (start: Date): string => {
+    const endFormatted = start.toLocaleDateString("ja-JP", {
       month: "numeric",
       day: "numeric",
     });
@@ -154,10 +159,10 @@ export default function Dashboard() {
         const dutyData = await dutyRes.json();
 
         // 이번 주와 다음 주 당번 필터링
-        const now = new Date();
-        const thisWeek = getWeekRange(now);
+
+        const thisWeek = getWeekRange(todayJst);
         const nextWeek = getWeekRange(
-          new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+          new Date(todayJst.getTime() + 7 * 24 * 60 * 60 * 1000)
         );
 
         const thisWeekDuties = dutyData.filter((duty: DutyAssignment) => {
@@ -392,14 +397,13 @@ export default function Dashboard() {
   }
 
   // 이번 주와 다음 주 날짜 범위 계산
-  const now = new Date();
-  now.setDate(now.getDate() - 2); // 현재 날짜에서 2일 전으로 설정
-  const thisWeek = getWeekRange(now);
+  todayJst.setDate(todayJst.getDate());
+  const thisWeek = getWeekRange(todayJst);
   const nextWeek = getWeekRange(
-    new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+    new Date(todayJst.getTime() + 7 * 24 * 60 * 60 * 1000)
   );
-  const thisWeekRange = formatWeekRange(thisWeek.start, thisWeek.end);
-  const nextWeekRange = formatWeekRange(nextWeek.start, nextWeek.end);
+  const thisWeekRange = formatWeekRange(thisWeek.start);
+  const nextWeekRange = formatWeekRange(nextWeek.start);
 
   return (
     <div>
