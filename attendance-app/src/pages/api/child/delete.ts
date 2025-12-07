@@ -1,3 +1,4 @@
+// attendance-app/src/pages/api/child/delete.ts
 import { NextApiRequest, NextApiResponse } from "next";
 import { jwtDecode } from "jwt-decode";
 import { prisma } from "../../../../lib/prisma";
