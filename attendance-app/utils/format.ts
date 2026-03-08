@@ -6,22 +6,33 @@ export const formatBirthDay = (birthDay: string) => {
 export function getGrade(birthDay: string): string {
   const birthDate = new Date(birthDay);
   const birthYear = birthDate.getFullYear();
-  const birthMonth = birthDate.getMonth(); // 0 = January, 3 = April
+  const birthMonth = birthDate.getMonth();
+  const birthDayOfMonth = birthDate.getDate();
 
-  // 1~3월 출생자는 학년을 한 해 앞당기기 위해 연도에서 -1
-  const schoolStartYear = birthMonth < 3 ? birthYear - 1 : birthYear;
+  // 일본 학년 기준: 4월 1일 이전 출생자는 같은 해, 4월 2일 이후는 다음 해 입학 cohort
+  let cohortYear = birthYear;
+  if (birthMonth > 3 || (birthMonth === 3 && birthDayOfMonth >= 2)) {
+    cohortYear = birthYear + 1;
+  }
 
-  const currentDate = new Date();
-  const currentYear = currentDate.getFullYear();
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
 
-  // 나이 기준이 아닌 입학년도 기준으로 중1~고3을 판단
-  const grade = currentYear - schoolStartYear;
+  // 일본 학년도: 4월 시작 (3월까지는 이전 학년도)
+  const fiscalYear = currentMonth >= 3 ? currentYear : currentYear - 1;
 
-  if (grade === 13) return "中学 1年";
-  if (grade === 14) return "中学 2年";
-  if (grade === 15) return "中学 3年";
-  if (grade === 16) return "高校 1年";
-  if (grade === 17) return "高校 2年";
-  if (grade === 18) return "高校 3年";
+  // 중학교 계산 (중1 시작: cohortYear + 12)
+  const middleGrade = fiscalYear - (cohortYear + 12) + 1;
+  if (middleGrade >= 1 && middleGrade <= 3) {
+    return `中学 ${middleGrade}年`;
+  }
+
+  // 고등학교 계산 (고1 시작: cohortYear + 15)
+  const highGrade = fiscalYear - (cohortYear + 15) + 1;
+  if (highGrade >= 1 && highGrade <= 3) {
+    return `高校 ${highGrade}年`;
+  }
+
   return "";
 }
