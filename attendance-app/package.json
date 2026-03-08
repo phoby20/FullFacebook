@@ -30,6 +30,7 @@
     "react-datepicker": "^8.3.0",
     "react-dom": "^19.0.0",
     "recharts": "^2.15.3",
+    "resend": "^6.9.3",
     "sharp": "^0.34.1"
   },
   "devDependencies": {
