@@ -43,7 +43,7 @@ export default async function handler(
     const resetUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/reset-password?token=${resetToken}`;
 
     await resend.emails.send({
-      from: "noreply@yourdomain.com",
+      from: process.env.EMAIL_FROM as string,
       to: email,
       subject: "Password Reset",
       html: `<p>Click the link below to reset your password.</p>

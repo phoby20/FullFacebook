@@ -30,6 +30,8 @@ model User {
   phone            String?
   lineId           String?
   cacaoTalkId      String?
+  resetToken        String?
+  resetTokenExpiry  DateTime?
   role             Role
   createdAt        DateTime           @default(now())
   attendance       Attendance[]       @relation("Checker")
