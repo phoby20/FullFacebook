@@ -25,10 +25,12 @@
     "formidable": "^3.5.4",
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
-    "next": "15.3.1",
+    "next": "^16.1.6",
     "react": "^19.0.0",
     "react-datepicker": "^8.3.0",
     "react-dom": "^19.0.0",
+    "react-server-dom-parcel": "^19.2.4",
+    "react-server-dom-webpack": "^19.2.4",
     "recharts": "^2.15.3",
     "resend": "^6.9.3",
     "sharp": "^0.34.1"
