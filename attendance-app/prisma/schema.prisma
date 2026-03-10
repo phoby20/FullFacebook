@@ -53,6 +53,9 @@ model Child {
   cacaoTalkId     String?
   managerId       String
   assignedAdminId String?
+  isGraduated     Boolean           @default(false)
+  graduatedAt     DateTime?
+  archivedAt      DateTime?
   createdAt       DateTime          @default(now())
   attendance      Attendance[]
   assignedAdmin   User?             @relation("AdminChildren", fields: [assignedAdminId], references: [id])

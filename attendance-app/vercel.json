@@ -1,0 +1,9 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/graduation",
+      "schedule": "0 0 31 3 *"
+    },
+    { "path": "/api/cron/archive/graduates", "schedule": "0 3 * * *" }
+  ]
+}
