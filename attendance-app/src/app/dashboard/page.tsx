@@ -10,6 +10,7 @@ import Image from "next/image";
 import { Child } from "@/types/child";
 import { User } from "@/types/user";
 import { formatInTimeZone } from "date-fns-tz";
+import GraduationNoticeModal from "@/components/GraduationNoticeModal";
 
 type DecodedToken = {
   userId: string;
@@ -24,13 +25,20 @@ type DutyAssignment = {
   date: string;
 };
 
+type GraduationStudent = {
+  id: string;
+  name: string;
+  birthDay: string;
+  photoPath: string;
+};
+
 export default function Dashboard() {
   const [user, setUser] = useState<User | null>(null);
   const [children, setChildren] = useState<Child[]>([]);
   const [admins, setAdmins] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [attendanceMap, setAttendanceMap] = useState<Record<string, boolean>>(
-    {}
+    {},
   );
   const [message, setMessage] = useState("");
   const [isFadingOut, setIsFadingOut] = useState(false);
@@ -40,11 +48,31 @@ export default function Dashboard() {
   const [thisWeekDuties, setThisWeekDuties] = useState<DutyAssignment[]>([]);
   const [nextWeekDuties, setNextWeekDuties] = useState<DutyAssignment[]>([]);
   const [isOpen, setIsOpen] = useState(true); // Default: accordion open
+  const [students, setStudents] = useState<GraduationStudent[]>([]);
   const router = useRouter();
+
+  const [graduationNoticeOpen, setGraduationNoticeOpen] = useState(false);
+
+  useEffect(() => {
+    const hiddenUntil = localStorage.getItem("hideGraduationNoticeUntil");
+
+    if (hiddenUntil && Date.now() < Number(hiddenUntil)) {
+      return;
+    }
+
+    fetch("/api/dashboard/graduation-candidates")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.length > 0) {
+          setStudents(data);
+          setGraduationNoticeOpen(true);
+        }
+      });
+  }, []);
 
   const jstTimeZone = "Asia/Tokyo";
   const todayJst = new Date(
-    formatInTimeZone(new Date(), jstTimeZone, "yyyy-MM-dd'T00:00:00.000Z")
+    formatInTimeZone(new Date(), jstTimeZone, "yyyy-MM-dd'T00:00:00.000Z"),
   );
 
   // 주간 범위 계산 함수
@@ -162,7 +190,7 @@ export default function Dashboard() {
 
         const thisWeek = getWeekRange(todayJst);
         const nextWeek = getWeekRange(
-          new Date(todayJst.getTime() + 7 * 24 * 60 * 60 * 1000)
+          new Date(todayJst.getTime() + 7 * 24 * 60 * 60 * 1000),
         );
 
         const thisWeekDuties = dutyData.filter((duty: DutyAssignment) => {
@@ -302,7 +330,7 @@ export default function Dashboard() {
     <>
       {admins.map((admin) => {
         const adminChildren = children.filter(
-          (child) => child.assignedAdminId === admin.id
+          (child) => child.assignedAdminId === admin.id,
         );
         return (
           <ChildrenSection
@@ -370,7 +398,7 @@ export default function Dashboard() {
         {admins.map((admin) => {
           if (admin.id === user.id) return null; // 自分のセクションはスキップ
           const adminChildren = children.filter(
-            (child) => child.assignedAdminId === admin.id
+            (child) => child.assignedAdminId === admin.id,
           );
           return (
             <ChildrenSection
@@ -400,7 +428,7 @@ export default function Dashboard() {
   todayJst.setDate(todayJst.getDate());
   const thisWeek = getWeekRange(todayJst);
   const nextWeek = getWeekRange(
-    new Date(todayJst.getTime() + 7 * 24 * 60 * 60 * 1000)
+    new Date(todayJst.getTime() + 7 * 24 * 60 * 60 * 1000),
   );
   const thisWeekRange = formatWeekRange(thisWeek.start);
   const nextWeekRange = formatWeekRange(nextWeek.start);
@@ -566,6 +594,13 @@ export default function Dashboard() {
             ? renderSuperAdminView()
             : renderAdminView())}
       </div>
+
+      {graduationNoticeOpen && (
+        <GraduationNoticeModal
+          students={students}
+          onClose={() => setGraduationNoticeOpen(false)}
+        />
+      )}
     </div>
   );
 }
