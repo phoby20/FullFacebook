@@ -46,6 +46,7 @@ model Child {
   id              String            @id @default(cuid())
   name            String
   birthDay        DateTime
+  grade           Int               // 1:中1, 2:中2, 3:中3, 4:高1, 5:高2, 6:高3
   photoPath       String
   gender          Gender
   phone           String?

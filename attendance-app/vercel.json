@@ -1,6 +1,10 @@
 {
   "crons": [
     {
+      "path": "/api/cron/promote-grades",
+      "schedule": "0 0 1 3 *"
+    },
+    {
       "path": "/api/cron/graduation",
       "schedule": "0 0 31 3 *"
     },

@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../../../lib/prisma";
-import { getGrade } from "../../../../../utils/format";
 
 export async function GET() {
   const today = new Date();
@@ -13,25 +12,18 @@ export async function GET() {
     return NextResponse.json([]);
   }
 
-  const students = await prisma.child.findMany({
+  const high3Students = await prisma.child.findMany({
     where: {
       isGraduated: false,
+      grade: 6, // 高校3年
     },
     select: {
       id: true,
       name: true,
       birthDay: true,
       photoPath: true,
+      grade: true,
     },
-  });
-
-  const high3Students = students.filter((student) => {
-    const birth =
-      student.birthDay instanceof Date
-        ? student.birthDay.toISOString()
-        : String(student.birthDay);
-
-    return getGrade(birth) === "高校 3年";
   });
 
   return NextResponse.json(high3Students);
