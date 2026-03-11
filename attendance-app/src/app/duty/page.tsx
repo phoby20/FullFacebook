@@ -9,16 +9,11 @@ import "react-datepicker/dist/react-datepicker.css";
 import { ko } from "date-fns/locale";
 import Loading from "@/components/Loading";
 import { getGrade } from "../../../utils/format";
+import { Child } from "@/types/child";
 
 type DecodedToken = {
   userId: string;
   role: "master" | "superAdmin" | "admin" | "child";
-};
-
-type Child = {
-  id: string;
-  name: string;
-  birthDay: string;
 };
 
 type Duty = {
@@ -43,7 +38,7 @@ export default function DutyManagementPage() {
   const [selectedChildId, setSelectedChildId] = useState<string>("");
   const [selectedDutyIds, setSelectedDutyIds] = useState<string[]>([]);
   const [selectedAssignmentIds, setSelectedAssignmentIds] = useState<string[]>(
-    []
+    [],
   );
   const [message, setMessage] = useState<string>("");
   const [isFadingOut, setIsFadingOut] = useState<boolean>(false);
@@ -67,7 +62,7 @@ export default function DutyManagementPage() {
   const getLocalDateString = (date: Date): string => {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(
       2,
-      "0"
+      "0",
     )}-${String(date.getDate()).padStart(2, "0")}`;
   };
 
@@ -185,7 +180,7 @@ export default function DutyManagementPage() {
       });
       if (res.ok) {
         setDutyAssignments(
-          dutyAssignments.filter((a) => !selectedAssignmentIds.includes(a.id))
+          dutyAssignments.filter((a) => !selectedAssignmentIds.includes(a.id)),
         );
         setSelectedAssignmentIds([]);
         setMessage("選択した当番指定を削除しました。");
@@ -210,19 +205,22 @@ export default function DutyManagementPage() {
   };
 
   // 당번별로 그룹화된 데이터 생성
-  const groupedAssignments = dutyAssignments.reduce((acc, assignment) => {
-    const dutyName = assignment.duty.name;
-    if (!acc[dutyName]) {
-      acc[dutyName] = [];
-    }
-    acc[dutyName].push(assignment);
-    return acc;
-  }, {} as { [key: string]: DutyAssignment[] });
+  const groupedAssignments = dutyAssignments.reduce(
+    (acc, assignment) => {
+      const dutyName = assignment.duty.name;
+      if (!acc[dutyName]) {
+        acc[dutyName] = [];
+      }
+      acc[dutyName].push(assignment);
+      return acc;
+    },
+    {} as { [key: string]: DutyAssignment[] },
+  );
 
   // 각 당번 내에서 날짜순으로 정렬
   Object.keys(groupedAssignments).forEach((dutyName) => {
     groupedAssignments[dutyName].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime(),
     );
   });
 
@@ -306,7 +304,7 @@ export default function DutyManagementPage() {
                 <option value="">学生を選択</option>
                 {children.map((child) => (
                   <option key={child.id} value={child.id}>
-                    {child.name} ({getGrade(child.birthDay)})
+                    {child.name} ({getGrade(child.grade) || "不明"})
                   </option>
                 ))}
               </select>
@@ -326,7 +324,7 @@ export default function DutyManagementPage() {
                           setSelectedDutyIds([...selectedDutyIds, duty.id]);
                         } else {
                           setSelectedDutyIds(
-                            selectedDutyIds.filter((id) => id !== duty.id)
+                            selectedDutyIds.filter((id) => id !== duty.id),
                           );
                         }
                       }}
@@ -387,7 +385,7 @@ export default function DutyManagementPage() {
                             checked={
                               groupedAssignments[dutyName].length > 0 &&
                               groupedAssignments[dutyName].every((a) =>
-                                selectedAssignmentIds.includes(a.id)
+                                selectedAssignmentIds.includes(a.id),
                               )
                             }
                             onChange={(e) => {
@@ -398,7 +396,7 @@ export default function DutyManagementPage() {
                                     .map((a) => a.id)
                                     .filter(
                                       (id) =>
-                                        !selectedAssignmentIds.includes(id)
+                                        !selectedAssignmentIds.includes(id),
                                     ),
                                 ]);
                               } else {
@@ -407,8 +405,8 @@ export default function DutyManagementPage() {
                                     (id) =>
                                       !groupedAssignments[dutyName]
                                         .map((a) => a.id)
-                                        .includes(id)
-                                  )
+                                        .includes(id),
+                                  ),
                                 );
                               }
                             }}
@@ -434,7 +432,7 @@ export default function DutyManagementPage() {
                             <input
                               type="checkbox"
                               checked={selectedAssignmentIds.includes(
-                                assignment.id
+                                assignment.id,
                               )}
                               onChange={(e) => {
                                 if (e.target.checked) {
@@ -445,8 +443,8 @@ export default function DutyManagementPage() {
                                 } else {
                                   setSelectedAssignmentIds(
                                     selectedAssignmentIds.filter(
-                                      (id) => id !== assignment.id
-                                    )
+                                      (id) => id !== assignment.id,
+                                    ),
                                   );
                                 }
                               }}
@@ -456,12 +454,12 @@ export default function DutyManagementPage() {
                           </td>
                           <td className="p-2">
                             {new Date(assignment.date).toLocaleDateString(
-                              "ko-KR"
+                              "ko-KR",
                             )}
                           </td>
                           <td className="p-2">
                             {assignment.child.name} (
-                            {getGrade(assignment.child.birthDay)})
+                            {getGrade(assignment.child.grade) || "不明"})
                           </td>
                         </tr>
                       ))}

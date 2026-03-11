@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 
 export default async function GET(
   request: NextApiRequest,
-  response: NextApiResponse
+  response: NextApiResponse,
 ) {
   const user = await getTokenUser(request);
   if (!user || user.role === "child") {
@@ -16,7 +16,14 @@ export default async function GET(
 
   try {
     const children = await prisma.child.findMany({
-      select: { id: true, name: true, birthDay: true },
+      select: {
+        id: true,
+        name: true,
+        birthDay: true,
+        grade: true,
+        photoPath: true,
+        assignedAdminId: true,
+      },
     });
     response.status(200).json(children);
   } catch {

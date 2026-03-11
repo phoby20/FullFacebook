@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Loading from "@/components/Loading";
 import { formatBirthDay, getGrade } from "../../../../utils/format";
+import { Child } from "@/types/child";
 
 type Admin = {
   id: string;
@@ -13,15 +14,8 @@ type Admin = {
     name: string;
     photoPath: string;
     birthDay: string;
+    grade: 1 | 2 | 3 | 4 | 5 | 6;
   }[];
-};
-
-type Child = {
-  id: string;
-  name: string;
-  assignedAdminId: string | null;
-  photoPath: string;
-  birthDay: string;
 };
 
 export default function AssignChildPage() {
@@ -188,8 +182,7 @@ export default function AssignChildPage() {
                     }
                   >
                     {child.name}{" "}
-                    {getGrade(child.birthDay) &&
-                      `(${getGrade(child.birthDay)})`}
+                    {getGrade(child.grade) && `(${getGrade(child.grade)})`}
                   </option>
                 ))}
               </select>
@@ -250,7 +243,7 @@ export default function AssignChildPage() {
                           生年月日: {formatBirthDay(child.birthDay)}
                         </p>
                         <p className="text-sm text-gray-600">
-                          {getGrade(child.birthDay) || "不明"}
+                          {getGrade(child.grade) || "不明"}
                         </p>
                       </div>
                     </li>
@@ -303,7 +296,7 @@ export default function AssignChildPage() {
                           生年月日: {formatBirthDay(child.birthDay)}
                         </p>
                         <p className="text-sm text-gray-600">
-                          {getGrade(child.birthDay) || "不明"}
+                          {getGrade(child.grade) || "不明"}
                         </p>
                       </div>
                     </li>

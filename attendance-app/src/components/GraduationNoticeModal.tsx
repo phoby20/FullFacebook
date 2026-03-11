@@ -53,7 +53,7 @@ export default function GraduationNoticeModal({ students, onClose }: Props) {
                 className="flex items-center gap-4 rounded-2xl bg-white/70 border border-gray-100 px-4 py-3 shadow-sm hover:shadow-md hover:bg-white transition-all"
               >
                 <img
-                  src={s.photoPath}
+                  src={s.photoPath || "/default_user.png"}
                   alt={s.name}
                   className="w-16 h-16 rounded-full object-cover border border-gray-200"
                 />
