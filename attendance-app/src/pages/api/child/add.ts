@@ -12,7 +12,7 @@ export const config = {
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (req.method !== "POST") {
     return res.status(405).json({ message: "Method not allowed" });
@@ -109,6 +109,7 @@ export default async function handler(
           birthDay: new Date(birthDay),
           gender: gender as "male" | "female",
           photoPath,
+          grade: 1, // 기본값으로 중학교 1학년 설정
           phone,
           lineId,
           cacaoTalkId,
