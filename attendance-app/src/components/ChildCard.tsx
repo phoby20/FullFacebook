@@ -2,20 +2,7 @@
 import Image from "next/image";
 import { useState, useRef, useEffect } from "react";
 import { formatBirthDay, getGrade } from "../../utils/format";
-
-type Child = {
-  id: string;
-  name: string;
-  birthDay: string;
-  photoPath: string;
-  gender: "male" | "female";
-  phone: string | null;
-  lineId: string | null;
-  cacaoTalkId: string | null;
-  managerId: string;
-  assignedAdminId: string | null;
-  createdAt: Date;
-};
+import { Child } from "@/types/child";
 
 export const ChildCard = ({
   child,
@@ -114,7 +101,7 @@ export const ChildCard = ({
             </div>
 
             <p className="text-xs text-gray-500">
-              {getGrade(child.birthDay)}（{formatBirthDay(child.birthDay)}）
+              {getGrade(child.grade)}（{formatBirthDay(child.birthDay)}）
             </p>
           </div>
           {onCheck && (
