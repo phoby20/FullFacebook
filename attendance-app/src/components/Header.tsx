@@ -179,6 +179,16 @@ export default function Header() {
               </Link>
               {user.role === "superAdmin" && (
                 <Link
+                  href="/dashboard/users"
+                  className="relative text-white hover:text-blue-200 transition-colors duration-300 group"
+                  aria-label="クラス設定ページへ"
+                >
+                  先生管理
+                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-200 transition-all duration-300 group-hover:w-full"></span>
+                </Link>
+              )}
+              {user.role === "superAdmin" && (
+                <Link
                   href="/superadmin/assign"
                   className="relative text-white hover:text-blue-200 transition-colors duration-300 group"
                   aria-label="クラス設定ページへ"

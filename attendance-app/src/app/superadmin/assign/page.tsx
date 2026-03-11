@@ -19,6 +19,7 @@ type Admin = {
 };
 
 export default function AssignChildPage() {
+  const [draggingChild, setDraggingChild] = useState<string | null>(null);
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [children, setChildren] = useState<Child[]>([]);
   const [selectedAdmin, setSelectedAdmin] = useState("");
@@ -214,7 +215,9 @@ export default function AssignChildPage() {
                   .map((child) => (
                     <li
                       key={child.id}
-                      className="flex items-center space-x-4 bg-white p-4 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+                      draggable
+                      onDragStart={() => setDraggingChild(child.id)}
+                      className="flex items-center space-x-4 bg-white p-4 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 cursor-grab"
                     >
                       {child.photoPath ? (
                         <Image
@@ -258,7 +261,33 @@ export default function AssignChildPage() {
 
           {/* 先生ごとの割り当て学生 */}
           {admins.map((admin) => (
-            <div key={admin.id}>
+            <div
+              key={admin.id}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={async () => {
+                if (!draggingChild) return;
+
+                await fetch("/api/superadmin/child/assign", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    adminId: admin.id,
+                    childId: draggingChild,
+                  }),
+                });
+
+                setDraggingChild(null);
+
+                const [updatedAdmins, updatedChildren] = await Promise.all([
+                  fetch("/api/admin/list").then((res) => res.json()),
+                  fetch("/api/child/list").then((res) => res.json()),
+                ]);
+
+                setAdmins(updatedAdmins);
+                setChildren(updatedChildren);
+              }}
+              className="border-2 border-dashed border-transparent hover:border-blue-300 rounded-xl p-2 transition"
+            >
               <h3 className="text-xl font-semibold text-gray-800 mb-4">
                 {admin.name} 先生
               </h3>
@@ -267,27 +296,18 @@ export default function AssignChildPage() {
                   {admin.assignedChildren.map((child) => (
                     <li
                       key={child.id}
-                      className="flex items-center space-x-4 bg-white p-4 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300"
+                      draggable
+                      onDragStart={() => setDraggingChild(child.id)}
+                      className="flex items-center space-x-4 bg-white p-4 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 cursor-grab"
                     >
-                      {child.photoPath ? (
-                        <Image
-                          width={48}
-                          height={48}
-                          src={child.photoPath}
-                          alt={`${child.name}の写真`}
-                          className="w-12 h-12 object-cover rounded-full border-2 border-gray-200"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <Image
-                          width={48}
-                          height={48}
-                          src="/default_user.png"
-                          alt="基本画像"
-                          className="w-12 h-12 object-cover rounded-full border-2 border-gray-200"
-                          loading="lazy"
-                        />
-                      )}
+                      <Image
+                        width={48}
+                        height={48}
+                        src={child.photoPath || "/default_user.png"}
+                        alt={`${child.name}の写真`}
+                        className="w-12 h-12 object-cover rounded-full border-2 border-gray-200"
+                        loading="lazy"
+                      />
                       <div>
                         <p className="text-sm font-medium text-gray-800">
                           {child.name}

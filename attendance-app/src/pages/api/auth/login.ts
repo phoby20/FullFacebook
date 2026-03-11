@@ -29,6 +29,10 @@ export default async function handler(
       return res.status(404).json({ message: "ユーザーが見つかりません" });
     }
 
+    if (!user.isActive) {
+      throw new Error("このアカウントは無効化されています。");
+    }
+
     const resetToken = crypto.randomBytes(32).toString("hex");
     const expires = new Date(Date.now() + 1000 * 60 * 60); // 1 hour
 

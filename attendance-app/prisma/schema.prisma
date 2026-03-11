@@ -33,6 +33,8 @@ model User {
   resetToken        String?
   resetTokenExpiry  DateTime?
   role             Role
+  isActive         Boolean            @default(true) // 활동 중인 계정 여부 (false이면 로그인 및 리스트 표시 차단)
+  deactivatedAt    DateTime?
   createdAt        DateTime           @default(now())
   attendance       Attendance[]       @relation("Checker")
   assignedChildren Child[]            @relation("AdminChildren")
