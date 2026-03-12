@@ -234,16 +234,16 @@ export default function EditChildPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-6">
+    <div className="min-h-screen flex items-center justify-center bg-[#f5f5f7] p-8">
       {isLoading && <Loading />}
-      <div className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-lg transform transition-all hover:shadow-2xl">
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
-          学生情報修正
+      <div className="w-full max-w-xl bg-white/90 backdrop-blur-md border border-gray-200 rounded-3xl shadow-lg px-10 py-10 transition-all">
+        <h1 className="text-2xl font-semibold text-gray-900 text-center mb-8 tracking-tight">
+          学生情報を編集
         </h1>
 
         {message && (
           <div
-            className={`mb-6 p-4 rounded-lg shadow-md animate-fade-in ${
+            className={`mb-6 px-4 py-3 rounded-xl text-sm font-medium animate-fade-in ${
               message.includes("完了")
                 ? "bg-green-100 text-green-700"
                 : "bg-red-100 text-red-700"
@@ -255,8 +255,40 @@ export default function EditChildPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} aria-describedby="form-message">
-          <div className="mb-6">
+        <form
+          onSubmit={handleSubmit}
+          aria-describedby="form-message"
+          className="space-y-8"
+        >
+          <div className="mb-10 flex flex-col items-center">
+            <div className="relative group">
+              <Image
+                width={120}
+                height={120}
+                src={preview || "/default-avatar.png"}
+                alt="プロフィール写真"
+                className="w-28 h-28 rounded-full object-cover border border-gray-200 shadow-sm"
+              />
+
+              <label
+                htmlFor="photo"
+                className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 text-white text-sm opacity-0 group-hover:opacity-100 cursor-pointer transition"
+              >
+                変更
+              </label>
+            </div>
+
+            <input
+              id="photo"
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+
+            <p className="text-xs text-gray-400 mt-3">JPEG / PNG</p>
+          </div>
+          <div className="mb-8">
             <label
               htmlFor="name"
               className="block text-sm font-medium text-gray-600 mb-2"
@@ -268,8 +300,8 @@ export default function EditChildPage() {
               type="text"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${
-                errors.name ? "border-red-500" : "border-gray-300"
+              className={`w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 transition ${
+                errors.name ? "border-red-500" : ""
               }`}
               required
               aria-invalid={errors.name}
@@ -277,7 +309,7 @@ export default function EditChildPage() {
             />
           </div>
 
-          <div className="mb-6">
+          <div className="mb-8">
             <label
               htmlFor="birthDay"
               className="block text-sm font-medium text-gray-600 mb-2"
@@ -295,8 +327,8 @@ export default function EditChildPage() {
               locale={ko}
               maxDate={new Date()}
               minDate={new Date(2000, 0, 1)}
-              className={`w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300 ${
-                errors.birthDay ? "border-red-500" : "border-gray-300"
+              className={`w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 transition ${
+                errors.birthDay ? "border-red-500" : ""
               }`}
               required
               aria-invalid={errors.birthDay}
@@ -304,61 +336,38 @@ export default function EditChildPage() {
             />
           </div>
 
-          <div className="mb-6">
-            <label
-              htmlFor="photo"
-              className="block text-sm font-medium text-gray-600 mb-2"
-            >
-              写真
-            </label>
-            {preview && (
-              <Image
-                width={80}
-                height={80}
-                src={preview}
-                alt="写真プレビュー"
-                className="w-20 h-20 object-cover rounded-lg border-2 border-gray-200 mb-4"
-              />
-            )}
-            <input
-              id="photo"
-              type="file"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="w-full p-3 border border-gray-300 rounded-lg file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-500 file:text-white file:font-semibold hover:file:bg-blue-600 transition-all duration-300"
-            />
-          </div>
-
-          <div className="mb-6">
+          <div className="mb-8">
             <label className="block text-sm font-medium text-gray-600 mb-2">
               性別<span className="text-red-500">*</span>
             </label>
-            <div className="flex gap-6">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="gender"
-                  value="male"
-                  checked={form.gender === "male"}
-                  onChange={() => setForm({ ...form, gender: "male" })}
-                  className="h-5 w-5 text-blue-500 focus:ring-blue-500 border-gray-300"
-                  required
-                />
-                <span className="ml-2 text-gray-600">男性</span>
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="gender"
-                  value="female"
-                  checked={form.gender === "female"}
-                  onChange={() => setForm({ ...form, gender: "female" })}
-                  className="h-5 w-5 text-blue-500 focus:ring-blue-500 border-gray-300"
-                  required
-                />
-                <span className="ml-2 text-gray-600">女性</span>
-              </label>
+
+            <div className="flex w-full rounded-xl border border-gray-200 overflow-hidden">
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, gender: "male" })}
+                className={`flex-1 py-3 text-sm font-medium transition ${
+                  form.gender === "male"
+                    ? "bg-blue-500 text-white"
+                    : "bg-white text-gray-600 hover:bg-gray-50"
+                }`}
+                aria-pressed={form.gender === "male"}
+              >
+                男性
+              </button>
+              <button
+                type="button"
+                onClick={() => setForm({ ...form, gender: "female" })}
+                className={`flex-1 py-3 text-sm font-medium transition border-l border-gray-200 ${
+                  form.gender === "female"
+                    ? "bg-blue-500 text-white"
+                    : "bg-white text-gray-600 hover:bg-gray-50"
+                }`}
+                aria-pressed={form.gender === "female"}
+              >
+                女性
+              </button>
             </div>
+
             {errors.gender && (
               <p
                 className="text-red-500 text-sm mt-1"
@@ -370,7 +379,7 @@ export default function EditChildPage() {
             )}
           </div>
 
-          <div className="mb-6">
+          <div className="mb-8">
             <label
               htmlFor="phone"
               className="block text-sm font-medium text-gray-600 mb-2"
@@ -382,51 +391,15 @@ export default function EditChildPage() {
               type="text"
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 bg-white focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-300 transition"
             />
           </div>
 
-          <div className="mb-6">
-            <label
-              htmlFor="lineId"
-              className="block text-sm font-medium text-gray-600 mb-2"
-            >
-              Line ID
-            </label>
-            <input
-              id="lineId"
-              type="text"
-              value={form.lineId}
-              onChange={(e) => setForm({ ...form, lineId: e.target.value })}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-            />
-          </div>
-
-          <div className="mb-6">
-            <label
-              htmlFor="cacaoTalkId"
-              className="block text-sm font-medium text-gray-600 mb-2"
-            >
-              KakaoTalk ID
-            </label>
-            <input
-              id="cacaoTalkId"
-              type="text"
-              value={form.cacaoTalkId}
-              onChange={(e) =>
-                setForm({ ...form, cacaoTalkId: e.target.value })
-              }
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300"
-            />
-          </div>
-
-          <div className="flex gap-4">
+          <div className="flex gap-3 pt-4">
             <button
               type="submit"
               disabled={isLoading}
-              className={`flex-1 py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300 ${
-                isLoading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className="flex-1 py-3 rounded-xl bg-blue-500 text-white font-medium hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="保存ボタン"
             >
               {isLoading ? "保存中..." : "保存"}
@@ -434,21 +407,21 @@ export default function EditChildPage() {
             <button
               type="button"
               onClick={() => router.push("/dashboard")}
-              className="flex-1 py-3 px-4 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-lg font-semibold hover:from-gray-600 hover:to-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-all duration-300"
+              className="flex-1 py-3 rounded-xl bg-gray-100 text-gray-800 font-medium hover:bg-gray-200 transition"
               aria-label="キャンセルボタン"
             >
               キャンセル
             </button>
+          </div>
+          <div className="mt-6 border-t pt-8">
             <button
               type="button"
               onClick={handleDelete}
               disabled={isLoading}
-              className={`flex-1 py-3 px-4 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg font-semibold hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all duration-300 ${
-                isLoading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className="w-full py-3 rounded-xl border border-red-500 text-red-500 font-medium hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="削除ボタン"
             >
-              {isLoading ? "削除中..." : "削除"}
+              {isLoading ? "削除中..." : "この学生を削除"}
             </button>
           </div>
         </form>
