@@ -247,7 +247,7 @@ export default function AssignChildPage() {
                           {child.name}
                         </p>
                         <p className="text-sm text-gray-600">
-                          生年月日: {formatBirthDay(child.birthDay)}
+                          {formatBirthDay(child.birthDay)}
                         </p>
                         <p className="text-sm text-gray-600">
                           {getGrade(child.grade) || "不明"}
@@ -317,7 +317,7 @@ export default function AssignChildPage() {
                           {child.name}
                         </p>
                         <p className="text-sm text-gray-600">
-                          生年月日: {formatBirthDay(child.birthDay)}
+                          {formatBirthDay(child.birthDay)}
                         </p>
                         <p className="text-sm text-gray-600">
                           {getGrade(child.grade) || "不明"}
