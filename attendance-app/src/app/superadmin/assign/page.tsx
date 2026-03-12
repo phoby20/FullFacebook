@@ -101,6 +101,10 @@ export default function AssignChildPage() {
         <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
           クラス設定
         </h1>
+        <p className="text-gray-600 text-center mb-8">
+          drag &
+          dropで学生を先生に割り当てることができます。または、下のフォームからも割り当て可能です。
+        </p>
 
         {message && (
           <div
