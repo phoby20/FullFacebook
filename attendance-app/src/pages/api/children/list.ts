@@ -16,6 +16,7 @@ export default async function GET(
 
   try {
     const children = await prisma.child.findMany({
+      where: { isGraduated: false },
       select: {
         id: true,
         name: true,

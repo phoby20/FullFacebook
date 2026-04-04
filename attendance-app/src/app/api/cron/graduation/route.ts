@@ -7,10 +7,11 @@ export async function GET() {
   try {
     const today = new Date();
 
-    // 2️⃣ 졸업 처리 + admin assignment 해제
+    // 고등학교 3학년(grade 6) 학생만 졸업 처리 + admin assignment 해제
     const result = await prisma.child.updateMany({
       where: {
         isGraduated: false,
+        grade: 6,
       },
       data: {
         isGraduated: true,

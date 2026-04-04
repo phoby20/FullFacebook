@@ -19,6 +19,7 @@ export default async function handler(
         birthDay: true,
         isActive: true,
         assignedChildren: {
+          where: { isGraduated: false },
           select: {
             id: true,
             name: true,

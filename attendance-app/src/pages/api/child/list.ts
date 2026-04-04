@@ -8,6 +8,7 @@ export default async function handler(
   if (req.method !== "GET") return res.status(405).end();
 
   const children = await prisma.child.findMany({
+    where: { isGraduated: false },
     orderBy: { name: "asc" },
   });
 
