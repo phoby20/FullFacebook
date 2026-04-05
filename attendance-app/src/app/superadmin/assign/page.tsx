@@ -183,7 +183,7 @@ export default function AssignChildPage() {
                     key={child.id}
                     value={child.id}
                     className={
-                      child.assignedAdminId ? "text-gray-400" : "text-gray-800"
+                      child.assignedAdminIds?.length ? "text-gray-400" : "text-gray-800"
                     }
                   >
                     {child.name}{" "}
@@ -212,10 +212,10 @@ export default function AssignChildPage() {
             <h2 className="text-2xl font-semibold text-gray-800 mb-4">
               未割り当ての学生
             </h2>
-            {children.filter((c) => !c.assignedAdminId).length > 0 ? (
+            {children.filter((c) => !c.assignedAdminIds?.length).length > 0 ? (
               <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {children
-                  .filter((c) => !c.assignedAdminId)
+                  .filter((c) => !c.assignedAdminIds?.length)
                   .map((child) => (
                     <li
                       key={child.id}
@@ -302,8 +302,28 @@ export default function AssignChildPage() {
                       key={child.id}
                       draggable
                       onDragStart={() => setDraggingChild(child.id)}
-                      className="flex items-center space-x-4 bg-white p-4 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 cursor-grab"
+                      className="relative flex items-center space-x-4 bg-white p-4 rounded-xl shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-300 cursor-grab"
                     >
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await fetch("/api/superadmin/child/assign", {
+                            method: "DELETE",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ adminId: admin.id, childId: child.id }),
+                          });
+                          const [updatedAdmins, updatedChildren] = await Promise.all([
+                            fetch("/api/admin/list").then((res) => res.json()),
+                            fetch("/api/child/list").then((res) => res.json()),
+                          ]);
+                          setAdmins(updatedAdmins);
+                          setChildren(updatedChildren);
+                        }}
+                        className="absolute top-2 right-2 w-5 h-5 flex items-center justify-center rounded-full bg-gray-100 text-gray-400 hover:bg-red-100 hover:text-red-500 transition text-xs leading-none"
+                        aria-label="割り当て解除"
+                      >
+                        ×
+                      </button>
                       <Image
                         width={48}
                         height={48}

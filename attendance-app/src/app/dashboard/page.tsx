@@ -330,7 +330,7 @@ export default function Dashboard() {
     <>
       {admins.map((admin) => {
         const adminChildren = children.filter(
-          (child) => child.assignedAdminId === admin.id,
+          (child) => child.assignedAdminIds?.includes(admin.id),
         );
         return (
           <ChildrenSection
@@ -347,7 +347,7 @@ export default function Dashboard() {
       <ChildrenSection
         title="未割り当ての学生"
         userPhotoPath=""
-        childList={children.filter((c) => !c.assignedAdminId)}
+        childList={children.filter((c) => !c.assignedAdminIds?.length)}
         attendanceMap={attendanceMap}
         onCheck={handleCheckAttendance}
         onEdit={handleEditChild}
@@ -357,7 +357,7 @@ export default function Dashboard() {
 
   const renderAdminView = () => {
     if (!user) return null;
-    const assigned = children.filter((c) => c.assignedAdminId === user.id);
+    const assigned = children.filter((c) => c.assignedAdminIds?.includes(user.id));
 
     return (
       <>
@@ -398,7 +398,7 @@ export default function Dashboard() {
         {admins.map((admin) => {
           if (admin.id === user.id) return null; // 自分のセクションはスキップ
           const adminChildren = children.filter(
-            (child) => child.assignedAdminId === admin.id,
+            (child) => child.assignedAdminIds?.includes(admin.id),
           );
           return (
             <ChildrenSection
@@ -413,7 +413,7 @@ export default function Dashboard() {
         <ChildrenSection
           title="未割り当ての学生"
           userPhotoPath=""
-          childList={children.filter((c) => !c.assignedAdminId)}
+          childList={children.filter((c) => !c.assignedAdminIds?.length)}
           attendanceMap={attendanceMap}
         />
       </>

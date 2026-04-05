@@ -37,7 +37,7 @@ model User {
   deactivatedAt    DateTime?
   createdAt        DateTime           @default(now())
   attendance       Attendance[]       @relation("Checker")
-  assignedChildren Child[]            @relation("AdminChildren")
+  assignedChildren ChildAdminAssignment[]
   children         Child[]            @relation("ManagedChildren")
   assignedDuties   DutyAssignment[] @relation("AssignedBy") // 추가: 당번 지정 관계
   groups           UserGroup[]
@@ -45,25 +45,34 @@ model User {
 }
 
 model Child {
-  id              String            @id @default(cuid())
+  id              String                 @id @default(cuid())
   name            String
   birthDay        DateTime
-  grade           Int               // 1:中1, 2:中2, 3:中3, 4:高1, 5:高2, 6:高3
+  grade           Int                    // 1:中1, 2:中2, 3:中3, 4:高1, 5:高2, 6:高3
   photoPath       String
   gender          Gender
   phone           String?
   lineId          String?
   cacaoTalkId     String?
   managerId       String
-  assignedAdminId String?
-  isGraduated     Boolean           @default(false)
+  isGraduated     Boolean                @default(false)
   graduatedAt     DateTime?
   archivedAt      DateTime?
-  createdAt       DateTime          @default(now())
+  createdAt       DateTime               @default(now())
   attendance      Attendance[]
-  assignedAdmin   User?             @relation("AdminChildren", fields: [assignedAdminId], references: [id])
-  manager         User              @relation("ManagedChildren", fields: [managerId], references: [id])
-  dutyAssignments DutyAssignment[]  // 추가: 당번 지정 관계
+  assignedAdmins  ChildAdminAssignment[]
+  manager         User                   @relation("ManagedChildren", fields: [managerId], references: [id])
+  dutyAssignments DutyAssignment[]       // 추가: 당번 지정 관계
+}
+
+model ChildAdminAssignment {
+  childId    String
+  adminId    String
+  assignedAt DateTime @default(now())
+  child      Child    @relation(fields: [childId], references: [id], onDelete: Cascade)
+  admin      User     @relation(fields: [adminId], references: [id], onDelete: Cascade)
+
+  @@id([childId, adminId])
 }
 
 model Attendance {

@@ -23,10 +23,16 @@ export default async function GET(
         birthDay: true,
         grade: true,
         photoPath: true,
-        assignedAdminId: true,
+        assignedAdmins: { select: { adminId: true } },
       },
     });
-    response.status(200).json(children);
+    response.status(200).json(
+      children.map((c) => ({
+        ...c,
+        assignedAdminIds: c.assignedAdmins.map((a) => a.adminId),
+        assignedAdmins: undefined,
+      }))
+    );
   } catch {
     response.status(500).json({ message: "学生の取得に失敗しました。" });
   }

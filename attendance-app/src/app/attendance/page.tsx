@@ -25,7 +25,7 @@ type Child = {
   id: string;
   name: string;
   photoPath: string;
-  assignedAdminId: string | null;
+  assignedAdminIds: string[];
   attendance: Attendance[];
 };
 
@@ -484,7 +484,7 @@ export default function AllAttendancePage() {
                   );
                   const canCheckAttendance =
                     userRole === "superAdmin" ||
-                    userId === child.assignedAdminId;
+                    child.assignedAdminIds?.includes(userId);
 
                   return (
                     <td

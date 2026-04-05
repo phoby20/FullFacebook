@@ -32,14 +32,14 @@ export default async function handler(
         gender: true,
         lineId: true,
         cacaoTalkId: true,
-        assignedAdminId: true,
+        assignedAdmins: { select: { adminId: true } },
       },
     });
 
     if (!child) return res.status(404).json({ message: "Child not found" });
     if (
       decoded.role !== "superAdmin" &&
-      child.assignedAdminId !== decoded.userId
+      !child.assignedAdmins.some((a) => a.adminId === decoded.userId)
     ) {
       return res.status(403).json({ message: "권한이 없습니다." });
     }

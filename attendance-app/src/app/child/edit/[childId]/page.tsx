@@ -22,7 +22,6 @@ type Child = {
   phone: string | null;
   lineId: string | null;
   cacaoTalkId: string | null;
-  assignedAdminId: string | null;
 };
 
 export default function EditChildPage() {

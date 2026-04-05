@@ -17,6 +17,7 @@ interface ChildWithAttendance {
   id: string;
   name: string;
   photoPath: string;
+  assignedAdmins: { adminId: string }[];
   attendance: AttendanceRecord[];
 }
 
@@ -59,15 +60,12 @@ export default async function handler(
     }
 
     const children: ChildWithAttendance[] = await prisma.child.findMany({
-      // where:
-      //   decoded.role === "superAdmin"
-      //     ? {}
-      //     : { assignedAdminId: decoded.userId },
+      where: { isGraduated: false },
       select: {
         id: true,
         name: true,
         photoPath: true,
-        assignedAdminId: true,
+        assignedAdmins: { select: { adminId: true } },
         attendance: {
           select: {
             id: true,
@@ -88,6 +86,8 @@ export default async function handler(
     return res.status(200).json(
       children.map((child: ChildWithAttendance) => ({
         ...child,
+        assignedAdminIds: child.assignedAdmins.map((a) => a.adminId),
+        assignedAdmins: undefined,
         attendance: child.attendance.map((record: AttendanceRecord) => ({
           ...record,
           date: record.date.toISOString(),

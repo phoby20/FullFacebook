@@ -50,17 +50,27 @@ export default async function handler(
         birthDay: true,
         isActive: true,
         assignedChildren: {
+          where: { child: { isGraduated: false } },
           select: {
-            id: true,
-            name: true,
-            photoPath: true,
-            birthDay: true,
-            grade: true,
+            child: {
+              select: {
+                id: true,
+                name: true,
+                photoPath: true,
+                birthDay: true,
+                grade: true,
+              },
+            },
           },
         },
       },
     });
-    return res.status(200).json(admins);
+    return res.status(200).json(
+      admins.map((admin) => ({
+        ...admin,
+        assignedChildren: admin.assignedChildren.map((a) => a.child),
+      }))
+    );
   } catch (error) {
     console.error("Error fetching admins:", error);
     return res.status(500).json({ message: "Failed to fetch admins" });
