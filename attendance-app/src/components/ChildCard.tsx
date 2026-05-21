@@ -74,7 +74,7 @@ export const ChildCard = ({
               <div className="relative" ref={dropdownRef}>
                 {onCheck && (
                   <button
-                    className="text-l cursor-pointer text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200"
+                    className="flex items-center justify-center w-9 h-9 cursor-pointer text-xl text-blue-600 hover:text-blue-800 font-semibold transition-colors duration-200"
                     onClick={toggleDropdown}
                     aria-haspopup="true"
                     aria-expanded={isDropdownOpen}
