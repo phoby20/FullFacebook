@@ -71,7 +71,6 @@ export default function AllAttendancePage() {
   }, [message]);
 
   const onCheck = async (childId: string, date: Date) => {
-    setIsLoading(true);
     try {
       const child = children.find((c) => c.id === childId);
       if (!child) {
@@ -120,7 +119,7 @@ export default function AllAttendancePage() {
             })
           );
           setMessage("サーバーに出席記録がありません。");
-          await refreshAttendanceData();
+          await refreshAttendanceData(true);
           return;
         }
         console.error("API error:", res.status, data.message);
@@ -159,17 +158,15 @@ export default function AllAttendancePage() {
         return newChildren;
       });
 
-      await refreshAttendanceData();
+      await refreshAttendanceData(true);
     } catch (error: unknown) {
       console.error("Error updating attendance:", error);
       setMessage("出席処理に失敗しました。");
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  const refreshAttendanceData = async () => {
-    setIsLoading(true);
+  const refreshAttendanceData = async (silent = false) => {
+    if (!silent) setIsLoading(true);
     try {
       const start = startDate ? getLocalDateString(startDate) : "";
       const end = endDate ? getLocalDateString(endDate) : "";
@@ -192,7 +189,7 @@ export default function AllAttendancePage() {
       console.error("Error refreshing attendance:", error);
       setMessage("出席データの取得に失敗しました。");
     }
-    setIsLoading(false);
+    if (!silent) setIsLoading(false);
   };
 
   // CSVダウンロード機能
