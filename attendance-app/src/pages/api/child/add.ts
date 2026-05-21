@@ -102,6 +102,36 @@ export default async function handler(
       }
     }
 
+    // 생년월일로부터 현재 학년 계산（일본 학제 기준）
+    // 4월 2일 이후 출생: 소학교 입학 = 출생년 + 7
+    // 4월 1일 이하 출생: 소학교 입학 = 출생년 + 6
+    const calcGrade = (birthDayStr: string): number => {
+      const birth = new Date(birthDayStr);
+      const birthYear = birth.getFullYear();
+      const birthMonth = birth.getMonth() + 1; // 1-12
+      const birthDate = birth.getDate();
+
+      // 소학교 입학 연도
+      const elementaryEntryYear =
+        birthMonth > 4 || (birthMonth === 4 && birthDate >= 2)
+          ? birthYear + 7
+          : birthYear + 6;
+
+      // 현재 학년도（4월 기준）
+      const now = new Date();
+      const currentSchoolYear =
+        now.getMonth() + 1 >= 4 ? now.getFullYear() : now.getFullYear() - 1;
+
+      // 소학교 입학 후 경과 연수（0=소학1년）
+      const yearsElapsed = currentSchoolYear - elementaryEntryYear;
+
+      // grade 매핑: 6=중학1년, 7=중학2년, 8=중학3년, 9=고교1년, 10=고교2년, 11=고교3년
+      const gradeMap: Record<number, number> = {
+        6: 1, 7: 2, 8: 3, 9: 4, 10: 5, 11: 6,
+      };
+      return gradeMap[yearsElapsed] ?? 1;
+    };
+
     try {
       const child = await prisma.child.create({
         data: {
@@ -109,7 +139,7 @@ export default async function handler(
           birthDay: new Date(birthDay),
           gender: gender as "male" | "female",
           photoPath,
-          grade: 1, // 기본값으로 중학교 1학년 설정
+          grade: calcGrade(birthDay),
           phone,
           lineId,
           cacaoTalkId,
